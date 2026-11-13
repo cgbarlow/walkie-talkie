@@ -5,63 +5,63 @@ council-type: standalone
 
 # Council Report
 
-Scope: review of the three site prototypes in `prototypes/` and direction for the next iteration. The user's brief: Stage 2 (ESP32) as the base; finished product up front, then scroll through stages, form factors and parts; a PUSH / OPEN channel toggle on the unit; light and dark mode; vintage visual options that would appeal to a grandad in 2026.
+Scope: a very brief LinkedIn post with a good hook, linking to the radio site, saying this is the user's hack day project and inviting others to the hack day (https://agentics.org.nz/blog/hack-day-one-day-no-lanyards/). Plain English. The hack day page could not be read from this session, so no date, venue or sign-up details are stated.
 
 ## Animal Perspectives
 
 ### Bear — Vision & Direction
-- The product is the Stage 2 bedside unit; all three prototypes lead with the R1, which is a test bench. Lead with the radio.
-- A stage toggle hides half the story. A scroll tells it in order, with the R1 as the "how we proved it" chapter.
-- Open channel shifts the product from walkie towards room link. Present it as a deliberate second mode on a physical switch.
-- Vintage styling is strategic: the R1 doc already calls for a familiar radio metaphor and adult styling.
+- The post's one job is to get people to the hack day; the radio is the concrete example.
+- Lead with the person, not the technology: phones are tricky for older people who only want to reach family.
+- Say plainly that this is what will be built on the day.
 
 ### Cat — Risk & Scope
-- Open channel contradicts the published rule "mic live only while the button is held". Needs: switch on the unit only, steady red light, spoken open/closed, visible to the other end, Grandad's consent, and rewritten copy.
-- The audio design is half duplex with no echo cancelling (820 KB and a third of a core). v1 open mode should be voice-activated, one at a time, mic muted while the speaker plays. Relay floor rules (1.5 s silence, 60 s max) need an open-mode rule.
-- Open mode keeps the radio awake (about 180 mA sending, 21 MB per hour): meant for the dock.
-- "Finished product" hero must be labelled as a concept image.
-- Vintage styles risk low contrast, thin type and hover-only controls. Keep contrast high and body text large.
+- Do not imply the radio exists. The README says nothing is built yet and the pictures are concepts.
+- The hack day page was not read, so state no date, venue or audience. Let the link carry those.
+- Avoid stock phrases, rhetorical question-and-answer and hashtag walls.
 
 ### Owl — Process & Structure
-- Three forks, no index.html, a one-line README, no GitHub Pages. Build one index.html with style options on it.
-- Stage progress is stored three different ways. Use one PLAN object.
-- The ESP32 doc links to the R1 doc via a private artifact URL; the site should link to repo files only.
-- Proposed scroll: radio, try it, two ways to talk, shapes, inside, how we get there, numbers, Grandad's card, questions.
-- Keep the shared sound code in one block.
+- Order: hook, the idea in two lines, "this is my hack day project", invitation, two links.
+- Under about 120 words; the hook must land before LinkedIn's "see more".
+- Links on their own lines at the end; the first one drives the preview.
 
 ### Puppy — Opportunities & Momentum
-- Prototype B's simulator is the strongest idea; put it on the finished unit, straight under the hero.
-- A chrome bat-handle toggle for PUSH / OPEN is a natural vintage detail and a one-pin hardware change.
-- A glass tuning-dial band with a sliding needle for channels.
-- A printable "how to use your radio" card that doubles as the not-an-alarm card.
-- Unused images (handheld, pebble back) deserve a "pick a shape" section.
+- Use the site's own line: "Hold to talk. Let go to listen."
+- "One big orange button" is a picture people can see.
+- Borrow "no lanyards" for the invitation.
 
 ### Rabbit — Resources & Stakeholders
-- Stakeholders: Grandad (user, consent), the builder and carer, family on the channels, site readers. Grandad may read it himself, so add a text size control.
-- Assets: five concept images, two research docs, image prompts. Missing: a switch image, an R1 photo, updated prompts.
-- BOM: toggle switch about NZ$2 to 5; phone-style two-way may need a codec board with an echo reference.
-- Dependencies: Google Fonts, speech synthesis (voice and iOS gesture limits), Web Audio. Need fallbacks.
-- Voice-activated sending on ESP32 is unresearched; describe open mode as a proposal.
+- Two audiences: possible hack day attendees, and people with an older relative.
+- Lower the bar: bring your own idea, or help with this one.
+- Assets ready: live site, preview image, simulator.
 
 ### Wolf — Cohesion & Balance
-- Numbers and wording drift between prototypes. One page, one set of numbers, one voice.
-- Keep an honest "Stage 1, now" chapter for the R1.
-- The page is about Grandad, not for him. Add the printable card written to him.
-- Dark mode is inconsistent and has no toggle anywhere.
-- Privacy wording must match across the site and both docs.
+- About half radio, half invitation.
+- Write "my grandad" only if accurate; the draft says "Grandad" as the site does.
+- End on the invitation, not the gadget.
 
 ## Consensus
 
-**Common themes:** lead with the Stage 2 radio and tell the story as a scroll; open channel is wanted but must be fenced; vintage should mean familiar, not hard to read; one page, one data source, one set of numbers.
+Open with the human problem, show the radio in one or two lines, be honest that it is still a design, and close on an open invitation. Enthusiasm against honesty is settled by "this is what I'm going to build"; radio against hack day by a roughly even split.
 
-**Key tensions:** charm against legibility (decorate headings and frames, keep body plain and large); convenience against privacy (hands-free one-at-a-time with physical switch and red light); product-first against honesty (show it, label it a concept); future against present (R1 keeps a smaller honest chapter).
+**Draft post:**
 
-**Overall:** strong research and a winning simulator, but the site is three forks with no home and framed around the test bench. One product-first page with the mode switch designed in and switchable vintage styles in light and dark addresses nearly every point.
+Grandad doesn't need a smartphone. He needs one button.
+
+Phones are tricky when you're older. Passcodes, updates, tiny icons. All he wants is an easy way to talk to us.
+
+So I'm building him a radio. One big orange button: hold to talk, let go to listen. It works over Wi-Fi, so we can be in the next room or the next town.
+
+It's only a design so far. I'm going to start building it at our hack day. One day, no lanyards.
+
+Come along. Bring your own idea, or help me with this one.
+
+Try the radio: https://cgbarlow.github.io/walkie-talkie/
+The hack day: https://agentics.org.nz/blog/hack-day-one-day-no-lanyards/
+
+**Alternative hooks:** "My hack day project has one button." / "What if calling the family was as simple as pressing one button?"
 
 ## Recommended Next Steps
 
-1. Build `index.html` as one product-first scroll starting with the Stage 2 radio; remove the stage toggle.
-2. Add a PUSH / OPEN switch to the unit and simulator, with a "thinking behind the switch" section (v1: hands-free one at a time, unit-only, steady red light, spoken, pauses after 10 quiet minutes, two-person channel only).
-3. Offer three vintage styles on the same page, each with light and dark, a visible toggle and a text size control, at high contrast.
-4. Keep stage progress in one PLAN object; add the switch to the parts list.
-5. Later: update both docs and the image prompts so privacy wording and the switch match, then enable GitHub Pages.
+1. Check the post against the hack day page; add the date and place if wanted.
+2. Change "Grandad" to match who the radio is really for.
+3. Attach nothing; LinkedIn builds the preview from the first link. Put the hack day link first to preview that instead.
