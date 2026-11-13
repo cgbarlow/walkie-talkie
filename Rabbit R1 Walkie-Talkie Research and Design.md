@@ -213,7 +213,18 @@ The 300 ms figure is the 3GPP target for floor grant after a PTT press; real sys
 
 **Reliability.** Rabbit quotes over 36 hours screen-off standby but only about 2.5 hours of heavy audio ([Rabbit support](https://www.rabbit.tech/support/article/rabbit-r1-battery-life)). Live on a dock. Heartbeat every few minutes; alert the caregiver on offline or low battery, which the [Dementia Friendly Technology Charter](https://www.wwl.nhs.uk/media/Services/Dementia/Dementia_Friendly_Technology_Charter.pdf) explicitly asks for. Zello recovers up to 50 missed messages per channel from 24 hours but does not auto-play them ([Zello](https://support.zello.com/zw/message-recovery)); for Grandad, auto-play once with "You have a message from Chris".
 
-**Privacy and consent.** Mic live only while the button is held, never a remote listen-in. Red screen doubles as the mic indicator. Get his consent and revisit it. NZ's domestic-affairs privacy exemption does not cover anything "highly offensive to an ordinary reasonable person" ([Privacy Commissioner](https://privacy.org.nz/blog/to-film-or-not-to-film)).
+**Privacy and consent.** Mic live only while the button is held, or while open channel mode is switched on at the device (see below). Never a remote listen-in. Red screen doubles as the mic indicator. Get his consent and revisit it. NZ's domestic-affairs privacy exemption does not cover anything "highly offensive to an ordinary reasonable person" ([Privacy Commissioner](https://privacy.org.nz/blog/to-film-or-not-to-film)).
+
+**Open channel mode (proposal, added November 2026).** Holding a button is fine for a quick message but hard for a long chat or stiff hands. So the walkie gets a second mode, OPEN, alongside push-to-talk. This is a design proposal, not sourced research, and is untested.
+
+- Hands-free but still one talker at a time. The walkie sends when it hears speech and stops when it goes quiet. While the other person talks, the local mic is muted, so no echo cancelling is needed.
+- It can only be switched on at the device, never remotely. On the ESP32 unit it is a physical PUSH / OPEN toggle. The R1 has no spare switch, so Stage 1 tries it as a hidden caregiver setting, purely to learn whether Grandad likes it.
+- The screen stays red and says OPEN the whole time the mic can hear. The walkie says "Channel open to Chris" and "Channel closed" aloud, and the other end shows that the channel is open.
+- OPEN only works on the two-person channel. Switching it on tunes to channel one and locks the wheel, so a group never gets an open mic.
+- After ten minutes with no speech it pauses and says so. One press of the button resumes; a press at any time pauses.
+- The relay needs an open-mode floor rule: the floor passes on voice activity instead of button presses.
+- The radio must stay awake, so this is for the dock. Data is still about 21 MB per hour of actual talk, provided silence is not sent.
+- Still to test: whether voice-activated sending clips first words (pre-roll should cover it) and whether ten minutes is the right pause.
 
 **Not an alarm.** Print a card: "This is not an emergency alarm. Call 111." No button labelled Help or SOS. If he is frail or lives alone, pair this with an accredited monitored alarm; Work and Income funds rental via the Disability Allowance, in-home from $16.22 a week, fall detectors excluded ([Work and Income](https://www.workandincome.govt.nz/eligibility/health-and-disability/medical-alarms)).
 
@@ -244,7 +255,7 @@ Neither R1 accepts inbound connections; both hold an outbound link to the relay,
 2.  **Relay (a day).** Go service on an Auckland or Sydney VPS: TLS control, UDP fan-out per group, floor control, 24-hour last message, health pings, APK manifest.
 3.  **App core (one or two weekends).** Kotlin, Oboe capture and playback, libopus via JNI, ChaCha20-Poly1305, jitter buffer, pre-roll on button down. Synthesised chirp, busy, roger and squelch tail. Wheel changes channel with a spoken announcement.
 4.  **Kiosk and pairing.** Device Owner, lock task, HOME, QR scan on first boot, self-update, remote config for volume, quiet hours and wheel lock.
-5.  **Grandad trial (a week).** Dock beside his chair, printed card, caregiver alerts on. Tune volume and treble, then decide whether the wheel stays unlocked.
+5.  **Grandad trial (a week).** Dock beside his chair, printed card, caregiver alerts on. Tune volume and treble, then decide whether the wheel stays unlocked. Try open channel mode and ask him what he thinks.
 
 ## Risks and open questions
 
@@ -259,6 +270,7 @@ Neither R1 accepts inbound connections; both hold an outbound link to the relay,
 | Relay down                                  | Silent failure                       | VPS not home server; device shows NOT CONNECTED      |
 | Mistaken for an alarm                       | Unsafe reliance                      | Printed card; pair with a monitored alarm            |
 | Lost device holds group key                 | Can eavesdrop                        | Caregiver "reset group" issues a new QR              |
+| Open channel left on                        | Mic hears more than intended         | Device-only switch, red screen, spoken notice, 10-minute pause |
 
 **Still unconfirmed:** the R1 screen resolution, measured speaker loudness, real standby on a custom ROM with an always-on socket, whether the GSI's missing AppWidgetService bites a single-app build (it should not), and current NZ carrier CGNAT behaviour.
 

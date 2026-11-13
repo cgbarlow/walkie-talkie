@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en-NZ" data-style="radio">
+<html lang="en-NZ">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,8 +10,7 @@
 (function () {
   var r = document.documentElement;
   try {
-    var s = localStorage.getItem("wt-style"), t = localStorage.getItem("wt-theme"), z = localStorage.getItem("wt-size");
-    if (s) r.dataset.style = s;
+    var t = localStorage.getItem("wt-theme"), z = localStorage.getItem("wt-size");
     if (t) r.dataset.theme = t;
     if (z) r.dataset.size = z;
   } catch (e) {}
@@ -19,12 +18,10 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,600&family=IBM+Plex+Mono:wght@500;600&family=Oswald:wght@500;600&family=Saira+Stencil+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
-/* ============ Styles: three looks, each with light and dark ============ */
-
-/* 1. Transistor: a 1960s bedside radio. Cream, walnut and a glass dial. */
-:root, :root[data-style="radio"] {
+/* ============ Colours: a 1960s bedside radio, in light and dark ============ */
+:root {
   --bg: #f3ece0; --bg2: #e9dfcc; --panel: #fbf7f0; --ink: #2a2118; --muted: #65563f; --line: #d4c4a8;
   --accent: #b84c14; --accent-ink: #ffffff; --good: #2f7a45; --warn: #a86a00; --bad: #b3261e;
   --dial-bg: linear-gradient(180deg, #f8edc6, #ecd9a0); --dial-ink: #3b2a17; --needle: #c0281d;
@@ -34,66 +31,18 @@
   --tag-bg: transparent; --tag-ink: var(--ink); --tag-border: 1.5px solid var(--ink); --tag-radius: 999px; --tag-font: 700 0.8rem/1.2 "Atkinson Hyperlegible", sans-serif; --tag-case: none; --tag-ls: 0.02em;
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]), :root[data-style="radio"]:not([data-theme="light"]) {
+  :root:not([data-theme="light"]) {
     --bg: #1b1410; --bg2: #231a14; --panel: #2a2019; --ink: #f2e6d2; --muted: #c2ae92; --line: #4a3a2c;
     --accent: #f08a3c; --accent-ink: #1b1410; --good: #6cc88a; --warn: #f2b84b; --bad: #ff7b6b;
     --dial-bg: radial-gradient(120% 140% at 50% 0%, #4a3412, #22180c); --dial-ink: #ffd27f; --needle: #ff5a3c;
     --frame: linear-gradient(135deg, #5e3a20, #3b2414 45%, #6b4628);
   }
 }
-:root[data-theme="dark"], :root[data-style="radio"][data-theme="dark"] {
+:root[data-theme="dark"] {
   --bg: #1b1410; --bg2: #231a14; --panel: #2a2019; --ink: #f2e6d2; --muted: #c2ae92; --line: #4a3a2c;
   --accent: #f08a3c; --accent-ink: #1b1410; --good: #6cc88a; --warn: #f2b84b; --bad: #ff7b6b;
   --dial-bg: radial-gradient(120% 140% at 50% 0%, #4a3412, #22180c); --dial-ink: #ffd27f; --needle: #ff5a3c;
   --frame: linear-gradient(135deg, #5e3a20, #3b2414 45%, #6b4628);
-}
-
-/* 2. Workshop manual: a 1970s service manual. Paper and ink; dark is a blueprint. */
-:root[data-style="manual"] {
-  --bg: #f4f1e8; --bg2: #ebe6d6; --panel: #fcfbf7; --ink: #141414; --muted: #4f4c43; --line: #c9c2ad;
-  --accent: #c2410c; --accent-ink: #ffffff; --good: #2f7a45; --warn: #9a6200; --bad: #b3261e;
-  --dial-bg: #ffffff; --dial-ink: #141414; --needle: #c2410c;
-  --frame: #141414; --frame-pad: 3px;
-  --head: "Oswald", "Arial Narrow", sans-serif; --head-w: 600; --head-case: uppercase; --head-ls: 0.02em;
-  --radius: 0px; --btn-radius: 0px;
-  --tag-bg: var(--ink); --tag-ink: var(--bg); --tag-border: 0; --tag-radius: 0; --tag-font: 600 0.78rem/1.2 "IBM Plex Mono", monospace; --tag-case: uppercase; --tag-ls: 0.06em;
-}
-@media (prefers-color-scheme: dark) {
-  :root[data-style="manual"]:not([data-theme="light"]) {
-    --bg: #0e2a47; --bg2: #113252; --panel: #12365a; --ink: #eef5fc; --muted: #b3c8de; --line: #3a6690;
-    --accent: #ffb000; --accent-ink: #0e2a47; --good: #7ee0a0; --warn: #ffcf5a; --bad: #ff8a7a;
-    --dial-bg: #0e2a47; --dial-ink: #eef5fc; --needle: #ffb000; --frame: #eef5fc;
-  }
-}
-:root[data-style="manual"][data-theme="dark"] {
-  --bg: #0e2a47; --bg2: #113252; --panel: #12365a; --ink: #eef5fc; --muted: #b3c8de; --line: #3a6690;
-  --accent: #ffb000; --accent-ink: #0e2a47; --good: #7ee0a0; --warn: #ffcf5a; --bad: #ff8a7a;
-  --dial-bg: #0e2a47; --dial-ink: #eef5fc; --needle: #ffb000; --frame: #eef5fc;
-}
-
-/* 3. Field set: a shed radio. Khaki canvas, olive panels, label-maker tape; dark is a night panel. */
-:root[data-style="field"] {
-  --bg: #e2dcc5; --bg2: #d7d0b4; --panel: #f0ecdb; --ink: #20231a; --muted: #4f543d; --line: #b3ab8a;
-  --accent: #a8401a; --accent-ink: #ffffff; --good: #2f6f3a; --warn: #8f5a00; --bad: #a3231b;
-  --dial-bg: #2c301e; --dial-ink: #e8f0c4; --needle: #ff6a2b;
-  --frame: #3a3f28; --frame-pad: 16px;
-  --head: "Saira Stencil One", "Atkinson Hyperlegible", sans-serif; --head-w: 400; --head-case: none; --head-ls: 0.01em;
-  --radius: 6px; --btn-radius: 6px;
-  --tag-bg: #111111; --tag-ink: #f2f2f2; --tag-border: 0; --tag-radius: 3px; --tag-font: 700 0.78rem/1.2 "IBM Plex Mono", monospace; --tag-case: uppercase; --tag-ls: 0.14em;
-}
-@media (prefers-color-scheme: dark) {
-  :root[data-style="field"]:not([data-theme="light"]) {
-    --bg: #12150e; --bg2: #181c12; --panel: #1f2418; --ink: #e8ecd8; --muted: #aab392; --line: #3a4230;
-    --accent: #9be070; --accent-ink: #12150e; --good: #9be070; --warn: #ffc34d; --bad: #ff7f6e;
-    --dial-bg: #0b0d08; --dial-ink: #9be070; --needle: #ff7a3c; --frame: #2a3020;
-    --tag-bg: #e8ecd8; --tag-ink: #12150e;
-  }
-}
-:root[data-style="field"][data-theme="dark"] {
-  --bg: #12150e; --bg2: #181c12; --panel: #1f2418; --ink: #e8ecd8; --muted: #aab392; --line: #3a4230;
-  --accent: #9be070; --accent-ink: #12150e; --good: #9be070; --warn: #ffc34d; --bad: #ff7f6e;
-  --dial-bg: #0b0d08; --dial-ink: #9be070; --needle: #ff7a3c; --frame: #2a3020;
-  --tag-bg: #e8ecd8; --tag-ink: #12150e;
 }
 
 /* Text size */
@@ -104,30 +53,22 @@ html[data-size="2"] { font-size: 23px; }
 /* ============ Base ============ */
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 1rem/1.6 "Atkinson Hyperlegible", system-ui, sans-serif; }
-:root[data-style="manual"][data-theme="dark"] body { background-image: linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px); background-size: 32px 32px; }
-@media (prefers-color-scheme: dark) { :root[data-style="manual"]:not([data-theme="light"]) body { background-image: linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px); background-size: 32px 32px; } }
 a { color: var(--accent); text-underline-offset: 3px; }
-:root[data-style="manual"] a:not(.btn), :root[data-style="field"] a:not(.btn) { color: var(--ink); text-decoration-color: var(--accent); text-decoration-thickness: 2px; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
 .wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
 h1, h2, h3 { font-family: var(--head); font-weight: var(--head-w); text-transform: var(--head-case); letter-spacing: var(--head-ls); line-height: 1.08; margin: 0 0 14px; }
 h1 { font-size: clamp(2.4rem, 6.4vw, 4.2rem); }
 h2 { font-size: clamp(1.7rem, 4vw, 2.5rem); }
 h3 { font-size: 1.25rem; line-height: 1.2; }
-:root[data-style="field"] h3, :root[data-style="manual"] h3 { font-family: "Atkinson Hyperlegible", sans-serif; font-weight: 700; text-transform: none; letter-spacing: 0; }
-:root[data-style="radio"] h1 em, :root:not([data-style]) h1 em { font-style: italic; font-weight: 600; }
-h1 em { font-style: normal; color: var(--accent); }
+h1 em { font-style: italic; font-weight: 600; color: var(--accent); }
 p { margin: 0 0 14px; }
 .muted { color: var(--muted); }
 .small { font-size: 0.85rem; }
 .tag { display: inline-block; background: var(--tag-bg); color: var(--tag-ink); border: var(--tag-border); border-radius: var(--tag-radius); font: var(--tag-font); text-transform: var(--tag-case); letter-spacing: var(--tag-ls); padding: 5px 12px; }
-:root[data-style="field"] .tag { box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 1px 2px rgba(0,0,0,.35); transform: rotate(-0.6deg); }
 section { padding: 72px 0; scroll-margin-top: 64px; }
 section.alt { background: var(--bg2); }
 .section-head { max-width: 46em; margin-bottom: 30px; }
 .section-head .tag { margin-bottom: 14px; }
-:root[data-style="manual"] main { counter-reset: sec; }
-:root[data-style="manual"] main section h2::before { counter-increment: sec; content: counter(sec) ".0  "; color: var(--accent); white-space: pre; }
 
 .btn { display: inline-flex; align-items: center; gap: 8px; border: 2px solid var(--ink); background: transparent; color: var(--ink); font: 700 1rem "Atkinson Hyperlegible", sans-serif; padding: 12px 22px; border-radius: var(--btn-radius); cursor: pointer; text-decoration: none; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
@@ -155,8 +96,6 @@ section.alt { background: var(--bg2); }
 .cta { display: flex; gap: 12px; flex-wrap: wrap; }
 .frame { background: var(--frame); padding: var(--frame-pad); border-radius: calc(var(--radius) + 6px); position: relative; }
 .frame img { display: block; width: 100%; height: auto; border-radius: var(--radius); }
-:root[data-style="field"] .frame::before, :root[data-style="field"] .frame::after { content: ""; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #d9dccf, #7d826c); top: 4px; left: 4px; }
-:root[data-style="field"] .frame::after { left: auto; right: 4px; }
 .fig { font: 600 0.8rem "IBM Plex Mono", monospace; color: var(--muted); margin-top: 10px; }
 .fig b { color: var(--ink); }
 
@@ -207,7 +146,6 @@ section.alt { background: var(--bg2); }
 .notes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 40px; margin-top: 34px; counter-reset: n; }
 .notes div { counter-increment: n; padding: 16px 0 16px 48px; border-top: 1.5px solid var(--line); position: relative; }
 .notes div::before { content: counter(n); position: absolute; left: 0; top: 14px; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--ink); display: grid; place-items: center; font: 600 0.9rem "IBM Plex Mono", monospace; }
-:root[data-style="manual"] .notes div::before, :root[data-style="field"] .notes div::before { border-radius: 0; }
 .notes p { margin: 0; }
 .proposal { margin-top: 26px; border: 2px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; }
 
@@ -320,11 +258,6 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
   <div class="wrap">
     <a class="mark" href="#"><i></i>Grandad's radio</a>
     <div class="controls">
-      <div class="seg" role="group" aria-label="Look">
-        <button type="button" data-set-style="radio">Transistor</button>
-        <button type="button" data-set-style="manual">Workshop</button>
-        <button type="button" data-set-style="field">Field set</button>
-      </div>
       <div class="seg" role="group" aria-label="Light or dark">
         <button type="button" id="themeBtn" aria-label="Switch to dark"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path id="themeIcon" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg> <span id="themeLbl">Dark</span></button>
       </div>
@@ -367,7 +300,7 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
     <div class="section-head">
       <span class="tag">Try it</span>
       <h2>Have a go</h2>
-      <p>Hold the orange button (or the space bar) to talk. Turn the knob, flip the switch, or have Chris call in. Turn your sound on.</p>
+      <p>Hold the orange button (or the space bar) to talk. Tap the knob to change channel, flip the switch, or have Chris call in. Turn your sound on.</p>
     </div>
     <div class="trybox">
       <div class="sim">
@@ -393,7 +326,7 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
           <text id="oCh" x="252" y="117" text-anchor="middle" fill="#e8e8e8" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="12">CHRIS</text>
           <text id="oWord" x="252" y="142" text-anchor="middle" fill="#ffffff" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="20">READY</text>
           <circle id="led" cx="320" cy="124" r="5.5" fill="#3e4a3c"/>
-          <g id="knob" style="cursor:ew-resize">
+          <g id="knob" style="cursor:pointer">
             <circle cx="252" cy="236" r="31" fill="#1d1d1d"/>
             <circle cx="252" cy="236" r="25" fill="#2b2b2b"/>
             <line id="pointer" x1="252" y1="236" x2="252" y2="214" stroke="#eeeeee" stroke-width="3" stroke-linecap="round"/>
@@ -641,13 +574,11 @@ const PLAN = [
 
 const $ = id => document.getElementById(id);
 
-/* ---------- Look: style, light or dark, text size ---------- */
+/* ---------- Light or dark, text size ---------- */
 const root = document.documentElement;
 function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 function isDark() { return root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; }
 function paintControls() {
-  const st = root.dataset.style || "radio";
-  document.querySelectorAll("[data-set-style]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.setStyle === st)));
   const sz = root.dataset.size || "0";
   document.querySelectorAll("[data-set-size]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.setSize === sz)));
   const d = isDark();
@@ -657,7 +588,6 @@ function paintControls() {
     ? "M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M5.6 18.4l-1.4 1.4M19.8 4.2l-1.4 1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"
     : "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z");
 }
-document.querySelectorAll("[data-set-style]").forEach(b => b.addEventListener("click", () => { root.dataset.style = b.dataset.setStyle; save("wt-style", b.dataset.setStyle); paintControls(); }));
 document.querySelectorAll("[data-set-size]").forEach(b => b.addEventListener("click", () => { root.dataset.size = b.dataset.setSize; save("wt-size", b.dataset.setSize); paintControls(); }));
 $("themeBtn").addEventListener("click", () => { const t = isDark() ? "light" : "dark"; root.dataset.theme = t; save("wt-theme", t); paintControls(); });
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", paintControls);
@@ -813,7 +743,7 @@ function tune(n) {
   S.ch = n; snd.click(); speak(SPOKEN[n]); hint("Each click says the channel name out loud.");
   S.state = idle(); render();
 }
-$("knob").addEventListener("click", e => { const b = e.currentTarget.getBoundingClientRect(); turn(e.clientX < b.left + b.width / 2 ? -1 : 1); });
+$("knob").addEventListener("click", () => tune((S.ch + 1) % CHANNELS.length));
 document.querySelectorAll("[data-ch]").forEach(b => b.addEventListener("click", () => tune(+b.dataset.ch)));
 
 function flip() {
