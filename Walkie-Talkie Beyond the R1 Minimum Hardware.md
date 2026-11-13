@@ -13,9 +13,9 @@ Nov 14, 2026 · @Chris Barlow
 - **Battery:** 4 to 9 days off the dock in light sleep, against the R1's day and a half.
 - **LTE:** optional. A SIM7670G board covers all NZ bands including 700 MHz, which the R1 lacks.
 
-**Chosen spec for Grandad's unit:** rotary knob for 3 to 5 channels, a small one-colour screen, spoken channel names and one big talk button, with an optional control service for channel setup, health alerts and ringing a lost device.
+**Chosen spec for Grandad's unit:** rotary knob for 3 to 5 channels, a small one-colour screen, spoken channel names, one big talk button and a PUSH / OPEN toggle switch for hands-free talk, with an optional control service for channel setup, health alerts and ringing a lost device.
 
-What you give up against the R1: the screen and camera, a finished case, and some loudness unless you fit a bigger speaker. The relay, channel model and elder-friendly design from the [R1 doc](https://claude.ai/artifact/7Zkx68Zoz1fP9c7YDFWctL) carry over unchanged.
+What you give up against the R1: the screen and camera, a finished case, and some loudness unless you fit a bigger speaker. The relay, channel model and elder-friendly design from the [R1 doc](Rabbit%20R1%20Walkie-Talkie%20Research%20and%20Design.md) carry over unchanged.
 
 ## Minimum requirements
 
@@ -35,7 +35,7 @@ The walkie needs far less than an R1. The practical floor is a dual-core 240 MHz
 
 Figures from the [micro-opus benchmarks](https://components.espressif.com/components/esphome/micro-opus/versions/0.4.1/readme) on ESP32-S3; the requirement statement is my inference from them.
 
-Not needed: a camera, a touch screen, an operating system, echo cancellation (half duplex mutes the speaker while you talk), or Bluetooth after setup.
+Not needed: a camera, a touch screen, an operating system, echo cancellation (half duplex mutes the speaker while you talk, and open channel mode keeps to one talker at a time), or Bluetooth after setup.
 
 ## ESP32 as the base
 
@@ -177,6 +177,7 @@ Build from parts around an ESP32-S3 with a rotary knob, a small screen and spoke
 - **Screen:** a small one-colour OLED, 0.96 to 1.3 inches. Channel name in large text, and one big word for the state: TALK, LISTEN, WAIT, OFFLINE. A status LED beside it adds the colour.
 - **Spoken names:** each click says the channel name. Clips are recorded once (ideally in each person's own voice) and pushed from the control service.
 - **Big button:** hold to talk. Nothing else to press.
+- **PUSH / OPEN switch:** a toggle on the front. PUSH is normal push-to-talk. OPEN is hands-free on Chris's channel, with the red light on throughout. See open channel mode below.
 - **Knob press:** replays the last message. Text entry by knob (turn for a letter, press to accept) exists only behind a long press as a setup fallback, and can be switched off on his unit.
 
 ```mermaid
@@ -184,6 +185,7 @@ flowchart LR
   MIC["<b>I2S MEMS mic</b><br/>INMP441 or ICS-43434"] -->|I2S in| ESP
   BTN["<b>Big talk button</b><br/>Arcade style, 30 mm+"] -->|GPIO| ESP
   DIAL["<b>Rotary dial</b><br/>3 to 5 channels, push"] -->|GPIO| ESP
+  SW["<b>PUSH / OPEN switch</b><br/>Toggle, hands-free mode"] -->|GPIO| ESP
   BAT["<b>Battery and charger</b><br/>1000 to 2000 mAh LiPo"] -->|power| ESP
   ESP["<b>ESP32-S3 with PSRAM</b><br/>Opus encode and decode<br/>Encrypts every packet<br/>Holds the Wi-Fi link<br/>BLE only for Wi-Fi setup<br/>Updates itself over the air"]
   ESP -->|I2S out| AMP["<b>Amp and speaker</b><br/>MAX98357A, 3 W, 4 ohm"]
@@ -192,7 +194,7 @@ flowchart LR
   LAP["<b>Your laptop, once</b><br/>Loads keys and Wi-Fi"] -->|USB| ESP
 ```
 
-*A whole walkie is one ESP32-S3 and six cheap parts.*
+*A whole walkie is one ESP32-S3 and seven cheap parts.*
 
 Everything on the left and top right lives in the case; the relay is the same one the R1 design uses, and the laptop is only needed once at setup.
 
@@ -206,6 +208,7 @@ Everything on the left and top right lives in the case; the relay is the same on
 | 4 ohm 3 W speaker, 40 to 50 mm              | 1.50                     | Surplustronics $8.90                                                                                                                                                                                          |
 | Big push button, 30 mm+                     | 2 to 4                   | Surplustronics $2.50                                                                                                                                                                                          |
 | Rotary encoder with knob                    | 2 to 3                   | Surplustronics $4.50; [Jaycar](https://www.jaycar.co.nz/arduino-compatible-rotary-encoder-module/p/XC3736) $12.90                                                                                            |
+| PUSH / OPEN toggle switch (SPDT)            | 1 to 2 (my estimate)     | Not checked; Jaycar and Surplustronics are the likely sources                                                                                                                                                  |
 | Small one-colour OLED, 0.96 to 1.3 inch     | about 2                  | Surplustronics $7.50                                                                                                                                                                                          |
 | LiPo 1000 mAh                               | 2 to 8                   | None. Jaycar 18650 cell $21.90 plus $1.60 holder                                                                                                                                                             |
 | USB-C charger board                         | 0.50                     | Surplustronics $1.60 (Micro USB)                                                                                                                                                                              |
@@ -217,7 +220,7 @@ A [Waveshare S3 audio board](https://core-electronics.com.au/waveshare-esp32-s3-
 **Build plan.**
 
 1.  **Breadboard night.** A T-Embed, or an S3 dev board with mic, amp, speaker, screen, knob and button. Flash xiaozhi-esp32 unmodified to prove the audio chain and loudness.
-2.  **Firmware.** Fork it: replace the AI server link with the walkie relay protocol, add floor control, chirp and busy tones, the knob, screen states and spoken channel names.
+2.  **Firmware.** Fork it: replace the AI server link with the walkie relay protocol, add floor control, chirp and busy tones, the knob, screen states, spoken channel names and the PUSH / OPEN switch.
 3.  **Setup tooling.** Laptop script that writes keys, relay address and Wi-Fi over USB. Long-press to open BLE provisioning.
 4.  **Control service.** Admin page for channels, names and device health, then ring and re-key.
 5.  **Power.** Light sleep off the dock, radio awake on it. Measure real standby current.
@@ -263,8 +266,30 @@ The relay already knows every device, so a small admin layer beside it can manag
 
 - It never holds channel keys. The admin page creates each key in your browser and wraps it for each unit's own public key; the server only stores and forwards the wrapped copies.
 - Firmware is signed with a key kept off the server, so a compromised server cannot push its own code.
-- There is no remote listen, ever. The ring is loud and obvious on purpose.
+- There is no remote listen, ever. The ring is loud and obvious on purpose. Open channel mode can only be turned on by the switch on the unit; the control service can see it is on but cannot set it.
 - Health and last-seen data are visible to whoever runs the page, so tell Grandad what it shows.
+
+## Open channel mode
+
+A toggle switch on the unit chooses between PUSH (hold the button to talk) and OPEN (hands-free). This section is a design proposal, not sourced research, and nothing here is tested.
+
+**What OPEN is.** A hands-free walkie, not a phone call. The unit sends when it hears speech and stops when it goes quiet, and still only one person talks at a time. While the other person is talking, the local microphone is muted, so the speaker cannot feed back and no echo cancelling is needed. A true two-way call would need Espressif's echo-cancelling front end (820 KB and a third of a core) and probably a codec board that supplies an echo reference, such as the ES8311. That is a later step.
+
+**Why a physical switch.** You can see and feel which way it is set, and nothing remote can change it. A latching toggle cannot be moved by software, so the timeout pauses the mode instead of leaving it.
+
+**Rules.**
+
+- The red light is on, and the screen says OPEN, whenever the microphone can hear.
+- The unit says "Channel open to Chris" and "Channel closed" aloud. Other units on the channel show that it is open.
+- OPEN works on the two-person channel only. Flipping the switch tunes to channel one and locks the knob.
+- After ten minutes with no speech the unit pauses and says so. A press of the big button resumes; a press at any time pauses.
+- Grandad decides whether to use it, and the printed card explains the red light.
+
+**Cost.** One SPDT toggle switch and one GPIO pin. The relay needs a floor rule driven by voice activity for open sessions.
+
+**Power and data.** The radio cannot use light sleep while open. At about 22 mA awake and 180 mA while sending, a 1000 mAh cell gives roughly a day and a half if mostly quiet and about 4 hours of solid talk (my arithmetic, 80% usable). So OPEN is for the dock. Data stays at about 21 MB per hour of actual talk, provided silence is not sent.
+
+**Open questions.** Whether voice-activated sending clips first words (pre-roll should cover it), a reliable voice-activity threshold in a room with a television on, whether ten minutes is the right pause, and which switch suits an older thumb.
 
 ## Risks and open questions
 
@@ -279,6 +304,8 @@ The relay already knows every device, so a small admin layer beside it can manag
 | LiPo left on charge for years       | Cell wear, safety          | Protected cell, power-path charger, consider charging to 4.1 V           |
 | xiaozhi fork diverges from upstream | Maintenance                | Keep changes in the protocol layer only                                  |
 | Still not an alarm                  | Unsafe reliance            | Same as the R1 doc: printed card, pair with a monitored alarm            |
+| Open channel left on                | Mic hears more than meant  | Switch on the unit only, red light, spoken notice, 10-minute pause       |
+| Voice activation misfires           | Clipped words, TV noise sent | Pre-roll buffer; tune the threshold on the bench                       |
 
 **Unconfirmed:** current T-Embed prices and AliExpress availability, real AliExpress checkout prices and shipping to NZ, an RSM declaration for the S3 module, Spark and 2degrees NB-IoT status, and whether NZ 3G shutdowns finished on schedule. Bill of materials prices are estimates, not quotes.
 
