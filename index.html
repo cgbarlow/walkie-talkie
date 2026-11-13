@@ -417,7 +417,7 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
       <tbody>
         <tr><td>Microphone on</td><td>Only while the button is held</td><td>Whenever the switch is on OPEN. Red light on.</td></tr>
         <tr><td>Who can talk</td><td>One at a time</td><td>One at a time, swapping by itself</td></tr>
-        <tr><td>Channels</td><td>Any channel on the knob</td><td>Chris's channel only. The knob is locked.</td></tr>
+        <tr><td>Channels</td><td>Any channel on the knob</td><td>Whichever channel the knob is on, group channels included. The knob is locked while it's open.</td></tr>
         <tr><td>Off the stand</td><td>4 to 9 days</td><td>About a day if mostly quiet, about 4 hours of solid talking</td></tr>
         <tr><td>Data</td><td>Only when someone talks</td><td>Only when someone talks. Silence sends nothing.</td></tr>
       </tbody>
@@ -429,8 +429,8 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
       <div><h3>A switch, not a setting</h3><p>You can see and feel which way it's set, even in the dark. Nobody can change it from somewhere else. That's the main reason for a physical switch.</p></div>
       <div><h3>Taking turns, not a phone call</h3><p>While Chris is talking, Grandad's microphone is muted so the speaker doesn't echo back down the line. A true two-way call needs echo cancelling, which takes about a third of the chip and probably a different sound board. That can come later.</p></div>
       <div><h3>The red light rule</h3><p>If the red light is on, the microphone can hear. In OPEN it stays on, the screen says OPEN, and Chris's radio shows that Grandad's channel is open.</p></div>
-      <div><h3>It says what it's doing</h3><p>Flip to OPEN and it says "Channel open to Chris". Flip back and it says "Channel closed".</p></div>
-      <div><h3>Only Chris's channel</h3><p>OPEN tunes to channel one and locks the knob. A family group never gets an open microphone by mistake.</p></div>
+      <div><h3>It says what it's doing</h3><p>Flip to OPEN and it says who can hear, such as "Channel open to family. Everyone on this channel can hear you". Flip back and it says "Channel closed".</p></div>
+      <div><h3>Groups too, with care</h3><p>OPEN works on a group channel, so the whole family can chat hands-free. Everyone on that channel hears what the microphone picks up, so the radio names the channel out loud first, and every other radio on it shows that Grandad's is open. The knob locks while it's open, so an open microphone can't be turned onto another channel by accident.</p></div>
       <div><h3>It pauses itself</h3><p>After ten minutes of nobody talking, it pauses and says so. Press the orange button to carry on. Pressing it any time in OPEN pauses or resumes.</p></div>
       <div><h3>Best on the stand</h3><p>In OPEN the radio has to stay fully awake, so the battery goes in hours rather than days. It's meant for when it's sitting on its stand.</p></div>
       <div><h3>Grandad decides</h3><p>It's his radio and his switch. We explain it, ask him, and ask again later. The printed card says what the red light means.</p></div>
@@ -552,7 +552,7 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
     <details><summary>Can anyone listen in?</summary><p>No. Each message is locked on the radio and only unlocked on the other radios. The server in the middle passes messages on but can't open them. The microphone only hears while the button is held, or while the switch is on OPEN with the red light on. There's no way to switch it on from somewhere else.</p></details>
     <details><summary>Why not just buy a pair of walkie-talkies?</summary><p>If you live within a kilometre or two, a pair of licence-free UHF radios for about $80 is simpler. They fall down on distance, hills, privacy (anyone can tune in), replaying missed messages and telling family when the battery is low.</p></details>
     <details><summary>What's the Rabbit R1 got to do with it?</summary><p>The R1 is a small gadget that happens to have a button, a wheel, a speaker and Wi-Fi. We already own two, so they're the quickest way to test the idea with Grandad. Rabbit has stopped making them and the battery is short, so it isn't the final radio.</p></details>
-    <details><summary>Can more of the family join?</summary><p>Yes. Each channel can hold several radios, and the knob picks the channel. OPEN only works on the two-person channel to Chris.</p></details>
+    <details><summary>Can more of the family join?</summary><p>Yes. Each channel can hold several radios, and the knob picks the channel. OPEN works on group channels too: everyone on the channel can then hear, and still only one person talks at a time.</p></details>
   </div>
 </section>
 
@@ -699,7 +699,7 @@ function render() {
   const st = S.state, [word, led] = LOOK[st];
   $("oWord").textContent = word;
   $("oWord").setAttribute("font-size", word.length > 7 ? 15 : 20);
-  $("oCh").textContent = st === "talk" ? CHANNELS[S.ch] + "  " + secs() : st === "open" ? "CHRIS · LIVE" : CHANNELS[S.ch];
+  $("oCh").textContent = st === "talk" ? CHANNELS[S.ch] + "  " + secs() : st === "open" ? CHANNELS[S.ch] + " · LIVE" : CHANNELS[S.ch];
   $("led").setAttribute("fill", led);
   $("led").classList.toggle("blink", st === "charge" || st === "offline");
   $("led").classList.toggle("pulse", st === "open");
@@ -774,9 +774,8 @@ function flip() {
   snd.clack();
   if (S.mode === "push") {
     S.mode = "open"; S.paused = false;
-    const moved = S.ch !== 0; S.ch = 0;
-    speak("Channel open to Chris. The red light means I can hear you.");
-    hint((moved ? "It tuned itself to Chris and locked the knob. " : "") + "Hands-free now: it sends when you speak, and goes quiet when you stop.");
+    speak(S.ch === 0 ? "Channel open to Chris. The red light means I can hear you." : "Channel open to " + CHANNELS[S.ch].toLowerCase() + ". Everyone on this channel can hear you.");
+    hint((S.ch === 0 ? "" : "This is a group channel, so everyone on it can hear. ") + "Hands-free now: it sends when you speak, and goes quiet when you stop. The knob is locked until you flip back.");
   } else {
     S.mode = "push"; S.paused = false;
     speak("Channel closed.");
@@ -792,7 +791,7 @@ $("evCall").addEventListener("click", () => {
   if (!S.online) { hint("No Wi-Fi. The server keeps the message and plays it when the radio is back."); return; }
   if (pressed) up();
   S.incoming = true; S.state = "listen"; snd.kerchunk(); render();
-  hint(S.mode === "open" ? "Chris is talking, so Grandad's microphone mutes itself to stop any echo." : "A short click, then Chris's voice. Try pressing the button while he talks.");
+  hint(S.mode === "open" ? "Chris is talking, so Grandad's microphone mutes itself to stop any echo." : "A short click, then Chris's voice. Try pressing the button during the message.");
   setTimeout(() => speak("Hi Grandad, it's Chris. I'll pop round at four.", () => {
     S.incoming = false; snd.roger();
     if (!pressed) S.state = idle();

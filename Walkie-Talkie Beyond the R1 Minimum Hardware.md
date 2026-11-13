@@ -177,7 +177,7 @@ Build from parts around an ESP32-S3 with a rotary knob, a small screen and spoke
 - **Screen:** a small one-colour OLED, 0.96 to 1.3 inches. Channel name in large text, and one big word for the state: TALK, LISTEN, WAIT, OFFLINE. A status LED beside it adds the colour.
 - **Spoken names:** each click says the channel name. Clips are recorded once (ideally in each person's own voice) and pushed from the control service.
 - **Big button:** hold to talk. Nothing else to press.
-- **PUSH / OPEN switch:** a toggle on the front. PUSH is normal push-to-talk. OPEN is hands-free on Chris's channel, with the red light on throughout. See open channel mode below.
+- **PUSH / OPEN switch:** a toggle on the front. PUSH is normal push-to-talk. OPEN is hands-free on whichever channel the knob is on, with the red light on throughout. See open channel mode below.
 - **Knob press:** replays the last message. Text entry by knob (turn for a letter, press to accept) exists only behind a long press as a setup fallback, and can be switched off on his unit.
 
 ```mermaid
@@ -280,8 +280,9 @@ A toggle switch on the unit chooses between PUSH (hold the button to talk) and O
 **Rules.**
 
 - The red light is on, and the screen says OPEN, whenever the microphone can hear.
-- The unit says "Channel open to Chris" and "Channel closed" aloud. Other units on the channel show that it is open.
-- OPEN works on the two-person channel only. Flipping the switch tunes to channel one and locks the knob.
+- The unit says which channel is open, such as "Channel open to family. Everyone on this channel can hear you", and "Channel closed" when it stops. Every other unit on the channel shows that it is open.
+- OPEN works on whichever channel the knob is on, group channels included. Everyone on that channel hears what the microphone picks up. The knob is locked while the channel is open, so an open microphone cannot be turned onto another channel by accident.
+- On a group channel it is still one talker at a time: the relay gives the floor to whoever starts speaking first, and the others hear them.
 - After ten minutes with no speech the unit pauses and says so. A press of the big button resumes; a press at any time pauses.
 - Grandad decides whether to use it, and the printed card explains the red light.
 
