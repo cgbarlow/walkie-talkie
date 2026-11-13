@@ -312,7 +312,7 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
     </div>
   </div>
   <figure style="margin:0">
-    <div class="frame"><img src="images/bedside-radio_sml.jpg" alt="A sage green radio on a bedside table, with a big orange button on top, a speaker grille, a small screen reading CHRIS and a black knob" width="805" height="1000"></div>
+    <div class="frame"><img src="images/bedside-radio_sml.jpg" alt="A sage green radio on a bedside table, with a big orange button on top, a speaker grille, a small screen reading CHRIS, a black knob and a PUSH / OPEN toggle switch" width="805" height="1000"></div>
     <figcaption class="fig"><b>Fig. 1</b> The bedside radio. A concept picture: the first one is still being designed.</figcaption>
   </figure>
 </div>
@@ -451,15 +451,15 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
     </div>
     <div class="shapes">
       <figure class="shape">
-        <div class="pic"><img src="images/bedside-radio_sml.jpg" alt="Sage green tabletop radio with orange button on top, grille, screen and knob" loading="lazy" width="805" height="1000"><span class="tag pick" style="background:var(--accent);color:var(--accent-ink);border:0">Our pick for Grandad</span></div>
+        <div class="pic"><img src="images/bedside-radio_sml.jpg" alt="Sage green tabletop radio with orange button on top, grille, screen, knob and toggle switch" loading="lazy" width="805" height="1000"><span class="tag pick" style="background:var(--accent);color:var(--accent-ink);border:0">Our pick for Grandad</span></div>
         <figcaption><h3>Bedside radio</h3><p>Sits on its stand by the chair, always charged. The button is on top, right where a hand lands.</p><div class="sw">Switch: on the front, below the grille.</div></figcaption>
       </figure>
       <figure class="shape">
-        <div class="pic"><img src="images/classic-handheld_sml.jpg" alt="Cream handheld walkie-talkie with grille, screen, big orange button and knob on top" loading="lazy" width="805" height="1000"></div>
+        <div class="pic"><img src="images/classic-handheld_sml.jpg" alt="Cream handheld walkie-talkie with grille, screen, big orange button, a knob on top and a toggle switch on the side" loading="lazy" width="805" height="1000"></div>
         <figcaption><h3>Classic handheld</h3><p>The walkie-talkie shape everyone already knows. Good for carrying round the house or garden.</p><div class="sw">Switch: on the side, under the thumb.</div></figcaption>
       </figure>
       <figure class="shape">
-        <div class="pic flips"><div class="flipper" id="pebble"><img src="images/pocket-pebble-front_sml.jpg" alt="Navy pebble-shaped radio in a hand, front view" loading="lazy" width="805" height="1000"><img class="back" src="images/pocket-pebble-back_sml.jpg" alt="Back of the pebble radio, showing the belt clip and lanyard loop" loading="lazy" width="805" height="1000" aria-hidden="true"></div><button class="flip" type="button" id="flip">Show back</button></div>
+        <div class="pic flips"><div class="flipper" id="pebble"><img src="images/pocket-pebble-front_sml.jpg" alt="Navy pebble-shaped radio in a hand, front view, with a slide switch on the edge" loading="lazy" width="805" height="1000"><img class="back" src="images/pocket-pebble-back_sml.jpg" alt="Back of the pebble radio, showing the belt clip and lanyard loop" loading="lazy" width="805" height="1000" aria-hidden="true"></div><button class="flip" type="button" id="flip">Show back</button></div>
         <figcaption><h3>Pocket pebble</h3><p>Small enough for a pocket. A sprung clip on the back grips a belt or a shirt pocket, and there's a loop for a lanyard. The knob is a ring around the button.</p><div class="sw">Switch: a small slider on the edge. Harder to see, so OPEN suits it least.</div></figcaption>
       </figure>
     </div>
@@ -477,10 +477,10 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
     <div class="inside">
       <div>
         <div class="photo" id="photo">
-          <img src="images/parts-layout_sml.jpg" alt="Twelve numbered parts laid out on a grey mat" loading="lazy" width="1000" height="558">
+          <img src="images/parts-layout_sml.jpg" alt="Thirteen numbered parts laid out on a grey mat, ending with a chrome toggle switch" loading="lazy" width="1000" height="558">
           <div class="ring" id="ring"></div>
         </div>
-        <p class="fig"><b>Fig. 2</b> The parts for one radio. A generated reference picture, not our actual kit.</p>
+        <p class="fig"><b>Fig. 2</b> The parts for one radio. A generated reference picture, not our actual kit. The orange button appears twice, side on and from above.</p>
       </div>
       <div>
         <table class="bom"><tbody id="bom"></tbody></table>
@@ -839,13 +839,13 @@ $("flip").addEventListener("click", e => {
 
 /* ---------- Parts ---------- */
 const PARTS = [
-  ["ESP32-S3 board", "about 10", 18.5, 21], ["Microphone", "2 to 4", 45, 20], ["Amplifier", "2 to 4", 58, 20],
-  ["Speaker, 3 W", "1.50", 82, 19], ["Big orange button", "2 to 4", 17, 51], ["Knob", "2 to 3", 40, 50],
-  ["Small screen", "about 2", 58.5, 51], ["Battery, 1000 mAh", "2 to 8", 81, 51], ["Charger board", "0.50", 17, 80],
-  ["Light and on/off switch", "under 1", 37, 81], ["Wire", "on hand", 58, 81], ["Case", "about 5", 82, 81],
-  ["PUSH / OPEN toggle switch (new, not pictured)", "2 to 5", null, null]
+  ["ESP32-S3 board", "about 10", 17.5, 22], ["Microphone", "2 to 4", 36, 22], ["Amplifier", "2 to 4", 50.5, 22.5],
+  ["Speaker, 3 W", "1.50", 69.5, 22], ["Big orange button", "2 to 4", 14, 50], ["Knob", "2 to 3", 34.5, 51],
+  ["Small screen", "about 2", 51, 51], ["Battery, 1000 mAh", "2 to 8", 69.5, 52], ["Charger board", "0.50", 88, 51],
+  ["Light and on/off switch", "under 1", 16, 80.5], ["Wire", "on hand", 34, 80], ["Case", "about 5", 63, 81.5],
+  ["PUSH / OPEN toggle switch", "2 to 5", 89, 82.5]
 ];
-$("bom").innerHTML = PARTS.map(([n, p, x], i) => `<tr data-i="${i}" class="${x === null ? "new" : ""}" tabindex="0"><td>${i + 1}</td><td>${n}</td><td>${p}</td></tr>`).join("");
+$("bom").innerHTML = PARTS.map(([n, p, x], i) => `<tr data-i="${i}" class="${i === 12 ? "new" : ""}" tabindex="0"><td>${i + 1}</td><td>${n}</td><td>${p}</td></tr>`).join("");
 const rows = [...$("bom").children], ring = $("ring");
 function mark(i) {
   rows.forEach((r, j) => r.classList.toggle("on", j === i));
