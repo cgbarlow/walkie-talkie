@@ -18,5 +18,3 @@ Open an issue on this repository titled "Commercial licence", or contact Chris B
 | --- | --- |
 | Code, including `index.html` and future firmware | [PolyForm Noncommercial 1.0.0](LICENSE) |
 | Research documents and images | [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) |
-
-Earlier versions of this repository were released under the MIT licence. Copies taken under that licence keep those terms.
