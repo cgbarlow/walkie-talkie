@@ -219,8 +219,8 @@ The 300 ms figure is the 3GPP target for floor grant after a PTT press; real sys
 
 - Hands-free but still one talker at a time. The walkie sends when it hears speech and stops when it goes quiet. While the other person talks, the local mic is muted, so no echo cancelling is needed.
 - It can only be switched on at the device, never remotely. On the ESP32 unit it is a physical PUSH / OPEN toggle. The R1 has no spare switch, so Stage 1 tries it as a hidden caregiver setting, purely to learn whether Grandad likes it.
-- The screen stays red and says OPEN the whole time the mic can hear. The walkie says "Channel open to Chris" and "Channel closed" aloud, and the other end shows that the channel is open.
-- OPEN only works on the two-person channel. Switching it on tunes to channel one and locks the wheel, so a group never gets an open mic.
+- The screen stays red and says OPEN the whole time the mic can hear. The walkie says which channel is open, such as "Channel open to family. Everyone on this channel can hear you", and "Channel closed" when it stops. Every other walkie on the channel shows that it is open.
+- OPEN works on whichever channel is selected, group channels included, so a family can chat hands-free. Everyone on that channel hears what the mic picks up, which is why the walkie names the channel aloud. The wheel locks while the channel is open, so an open mic cannot be moved to another channel by accident.
 - After ten minutes with no speech it pauses and says so. One press of the button resumes; a press at any time pauses.
 - The relay needs an open-mode floor rule: the floor passes on voice activity instead of button presses.
 - The radio must stay awake, so this is for the dock. Data is still about 21 MB per hour of actual talk, provided silence is not sent.

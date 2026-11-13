@@ -10,6 +10,10 @@ Mobile phones can be tricky for older people. Small icons, passcodes, updates an
 
 *Concept picture. The first unit is still being designed.*
 
+| Classic handheld | Pocket pebble | The parts |
+| --- | --- | --- |
+| ![Cream handheld radio](images/classic-handheld_sml.jpg) | ![Navy pebble-shaped radio in a hand](images/pocket-pebble-front_sml.jpg) | ![Thirteen parts laid out on a mat](images/parts-layout_sml.jpg) |
+
 ## Where it's at
 
 This is a family project at the research and design stage. Nothing is built yet.
@@ -24,8 +28,8 @@ Both stages use the same small relay server and the same sounds, so an R1 and an
 ## How it works
 
 - **Hold to talk.** One talker at a time, like a real radio. A chirp says it's ready, a roger beep says the message ended.
-- **A knob picks who.** Each click says the name out loud.
-- **PUSH / OPEN switch.** Flip to OPEN to talk hands-free, taking turns. The red light stays on whenever the microphone can hear. This part is a design proposal and hasn't been tested.
+- **A knob picks who.** Each click says the name out loud. A channel can be one person or a group, such as the whole family.
+- **PUSH / OPEN switch.** Flip to OPEN to talk hands-free, taking turns. It works on group channels too, and the radio says out loud who can hear. The red light stays on whenever the microphone can hear. This part is a design proposal and hasn't been tested.
 - **Private.** Messages are encrypted on the radio. The server passes them on but can't open them, and nobody can switch the microphone on from somewhere else.
 - **Looks after itself.** It keeps the last message for 24 hours and tells the family if it goes offline or the battery runs low.
 
