@@ -4,7 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Grandad's Radio</title>
-<meta name="description" content="A one-button internet radio for Grandad. Hold to talk, let go to listen, or flip the switch to talk hands-free. Built on an ESP32, tested first on the Rabbit R1.">
+<meta name="description" content="A simple radio for Grandad. Mobile phones can be tricky for older people who only want an easy way to reach the people they love. This has one big button: hold to talk, let go to listen.">
+<link rel="canonical" href="https://cgbarlow.github.io/walkie-talkie/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Grandad's Radio">
+<meta property="og:title" content="Grandad's Radio: hold to talk, let go to listen">
+<meta property="og:description" content="A simple radio for Grandad. Mobile phones can be tricky for older people who only want an easy way to reach the people they love. This has one big button: hold to talk, let go to listen.">
+<meta property="og:url" content="https://cgbarlow.github.io/walkie-talkie/">
+<meta property="og:image" content="https://cgbarlow.github.io/walkie-talkie/images/social-preview.jpg">
+<meta property="og:image:secure_url" content="https://cgbarlow.github.io/walkie-talkie/images/social-preview.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A sage green bedside radio with a big orange button, beside the words Hold to talk. Let go to listen.">
+<meta property="og:locale" content="en_NZ">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Grandad's Radio: hold to talk, let go to listen">
+<meta name="twitter:description" content="A simple radio for Grandad. Mobile phones can be tricky for older people who only want an easy way to reach the people they love. This has one big button: hold to talk, let go to listen.">
+<meta name="twitter:image" content="https://cgbarlow.github.io/walkie-talkie/images/social-preview.jpg">
 <script>
 /* Apply saved look before the page draws, so it doesn't flash. */
 (function () {
@@ -158,7 +175,12 @@ section.alt { background: var(--bg2); }
 .shape figcaption { padding-top: 12px; }
 .shape figcaption p { margin: 4px 0 0; font-size: 0.95rem; }
 .shape .sw { font-size: 0.88rem; color: var(--muted); margin-top: 6px; }
-.flip { position: absolute; right: 10px; bottom: 10px; border: 0; border-radius: 999px; padding: 8px 14px; background: rgba(0,0,0,.72); color: #fff; font: 700 0.85rem "Atkinson Hyperlegible", sans-serif; cursor: pointer; }
+.flipper { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.3,.1,.2,1); }
+.flipper.turned { transform: rotateY(180deg); }
+.flipper img { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: var(--radius); }
+.flipper img.back { transform: rotateY(180deg); }
+.shape .pic.flips { overflow: visible; background: transparent; perspective: 1200px; }
+.flip { z-index: 2; position: absolute; right: 10px; bottom: 10px; border: 0; border-radius: 999px; padding: 8px 14px; background: rgba(0,0,0,.72); color: #fff; font: 700 0.85rem "Atkinson Hyperlegible", sans-serif; cursor: pointer; }
 
 /* ============ Inside ============ */
 .inside { display: grid; grid-template-columns: 1.35fr 1fr; gap: 32px; align-items: start; }
@@ -243,7 +265,7 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
 }
 @media (prefers-reduced-motion: reduce) {
   .blink, .pulse { animation: none; }
-  .needle, .toggle span { transition: none; }
+  .needle, .toggle span, .flipper { transition: none; }
 }
 @media print {
   body * { visibility: hidden; }
@@ -275,9 +297,10 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
 <!-- The radio -->
 <div class="wrap hero">
   <div>
-    <span class="tag">One button · made for Grandad</span>
+    <span class="tag">A simpler way to stay in touch</span>
     <h1 style="margin-top:18px">Hold to talk.<br><em>Let go to listen.</em></h1>
-    <p class="lede">A small radio with one big orange button. It reaches the family over Wi-Fi, whether they're in the next room or the next town. Flip the switch and you can talk hands-free.</p>
+    <p class="lede">Mobile phones can be tricky for older people. Small icons, passcodes, updates and menus get in the way when all they want is an easy way to reach the people they love.</p>
+    <p class="lede">So we're building Grandad a radio with one big orange button. It reaches the family over Wi-Fi, whether they're in the next room or the next town.</p>
     <div class="facts">
       <div><b>One button</b><span>plus a knob to pick who</span></div>
       <div><b>Days on a charge</b><span>lives on a stand by his chair</span></div>
@@ -436,8 +459,8 @@ footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8
         <figcaption><h3>Classic handheld</h3><p>The walkie-talkie shape everyone already knows. Good for carrying round the house or garden.</p><div class="sw">Switch: on the side, under the thumb.</div></figcaption>
       </figure>
       <figure class="shape">
-        <div class="pic"><img id="pebble" src="images/pocket-pebble-front_sml.jpg" alt="Navy pebble-shaped radio in a hand, front view" loading="lazy" width="805" height="1000"><button class="flip" type="button" id="flip">Show back</button></div>
-        <figcaption><h3>Pocket pebble</h3><p>Small enough for a pocket or a lanyard. The knob is a ring around the button.</p><div class="sw">Switch: a small slider on the edge. Harder to see, so OPEN suits it least.</div></figcaption>
+        <div class="pic flips"><div class="flipper" id="pebble"><img src="images/pocket-pebble-front_sml.jpg" alt="Navy pebble-shaped radio in a hand, front view" loading="lazy" width="805" height="1000"><img class="back" src="images/pocket-pebble-back_sml.jpg" alt="Back of the pebble radio, showing the belt clip and lanyard loop" loading="lazy" width="805" height="1000" aria-hidden="true"></div><button class="flip" type="button" id="flip">Show back</button></div>
+        <figcaption><h3>Pocket pebble</h3><p>Small enough for a pocket. A sprung clip on the back grips a belt or a shirt pocket, and there's a loop for a lanyard. The knob is a ring around the button.</p><div class="sw">Switch: a small slider on the edge. Harder to see, so OPEN suits it least.</div></figcaption>
       </figure>
     </div>
   </div>
@@ -807,9 +830,10 @@ render();
 
 /* ---------- Pebble front and back ---------- */
 $("flip").addEventListener("click", e => {
-  const img = $("pebble"), toBack = img.src.includes("front");
-  img.src = "images/pocket-pebble-" + (toBack ? "back" : "front") + "_sml.jpg";
-  img.alt = toBack ? "Navy pebble radio, back view with belt clip and lanyard" : "Navy pebble-shaped radio in a hand, front view";
+  const card = $("pebble"), toBack = !card.classList.contains("turned");
+  card.classList.toggle("turned", toBack);
+  const [front, back] = card.children;
+  front.setAttribute("aria-hidden", String(toBack)); back.setAttribute("aria-hidden", String(!toBack));
   e.currentTarget.textContent = toBack ? "Show front" : "Show back";
 });
 

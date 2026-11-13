@@ -2,7 +2,7 @@
 
 Nov 14, 2026 · @Chris Barlow
 
-Four prompts for an image generator: one flat lay of every part with labels, and three concepts for how the finished walkie could look.
+Five prompts for an image generator: one flat lay of every part with labels, three concepts for how the finished walkie could look, and a back view of the pocket pebble.
 
 ## How to use
 
@@ -56,7 +56,7 @@ Clean technical catalogue look, realistic scale between parts, neutral colours. 
 | 12 | Project box | The case |
 | 13 | Toggle switch | Chooses push-to-talk or open channel |
 
-## Prompts 2a to 2c: the built walkie
+## Prompts 2a to 2d: the built walkie
 
 Three shapes for the same insides: a classic handheld, a bedside radio, and a pocket pebble.
 
@@ -82,6 +82,14 @@ Small enough for a pocket or a lanyard. The knob is a ring around the button, so
 
 ```
 Studio product photograph of a small homemade internet walkie-talkie shaped like a smooth pebble, three-quarter front view, resting in an open adult hand for scale. A rounded oval puck in matte navy blue plastic, about 85 mm long, 65 mm wide and 28 mm thick, with a woven lanyard loop at the top. On the front face: one very large round orange push button in the centre, surrounded by a black ribbed rotating ring that turns to change channel; above the button a small one-colour OLED screen showing the word "CHRIS" in large white letters on black; below the button a row of small speaker holes. A small slide switch on the right edge with the tiny engraved labels "PUSH" and "OPEN". A small status light glowing green beside the screen. A USB-C port on the bottom edge. No antenna, no keypad, no other buttons or switches, no brand logos. Soft, friendly, minimal design, like a well-made 3D printed gadget. Soft daylight, plain light background, shallow depth of field. Aspect ratio 4:5.
+```
+
+### 2d. Pocket pebble, back view
+
+The reverse of 2c, to show how it is carried: a sprung clip for a belt or shirt pocket, and the lanyard loop. Generate it straight after 2c so the colour and hand match.
+
+```
+Studio product photograph of the back of a small homemade internet walkie-talkie shaped like a smooth pebble, rear view, resting face down in an open adult hand for scale. A rounded oval puck in matte navy blue plastic, about 85 mm long, 65 mm wide and 28 mm thick, with a woven navy lanyard loop threaded through a small hole at the top. The back is plain and smooth except for one sturdy sprung belt clip in matching navy plastic running down the centre, hinged near the top with a visible small steel coil spring, with a ribbed grip at its lower tip. A small slide switch on the right edge. A USB-C port on the bottom edge. No screen, no buttons, no speaker holes and no labels on the back, no antenna, no brand logos. Soft, friendly, minimal design, like a well-made 3D printed gadget. Soft daylight, plain light background, shallow depth of field. Aspect ratio 4:5.
 ```
 
 **Variations worth trying.** Add "exploded view showing the internal circuit boards, speaker and battery floating apart above the case" to any concept for a cutaway. Swap the screen word for "LISTENING" or "TALK" and the status light to red to show other states. Add "sitting in a matching charging dock" for the dock.
