@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Walkie-Talkie Spec Sheet</title>
+<meta name="description" content="Spec sheet for a one-button internet walkie-talkie. Stage 1: Rabbit R1 proof of concept. Stage 2: ESP32 build.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf8;
+  --panel: #ffffff;
+  --ink: #1a1a1a;
+  --muted: #666660;
+  --line: #e2e1dc;
+  --line2: #c9c8c1;
+  --accent: #e0601c;
+  --accent-soft: #fbe6d9;
+  --good: #2f7d4a;
+  --warn: #b7791f;
+  --bad: #b83a2e;
+  --sans: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #121211; --panel: #1a1a19; --ink: #ebeae6; --muted: #9a9991; --line: #2b2b29; --line2: #3c3c39;
+    --accent: #f07a38; --accent-soft: #3a2518; --good: #5bb37a; --warn: #d9a441; --bad: #e0675a;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #121211; --panel: #1a1a19; --ink: #ebeae6; --muted: #9a9991; --line: #2b2b29; --line2: #3c3c39;
+  --accent: #f07a38; --accent-soft: #3a2518; --good: #5bb37a; --warn: #d9a441; --bad: #e0675a;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 var(--sans); }
+a { color: var(--accent); }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+h1 { font-size: clamp(1.8rem, 4.5vw, 2.6rem); line-height: 1.1; margin: 0 0 8px; letter-spacing: -0.015em; }
+h2 { font-size: 1.35rem; margin: 0 0 10px; }
+h3 { font-size: 1rem; margin: 0 0 8px; }
+p { margin: 0 0 12px; }
+.mono { font-family: var(--mono); }
+.muted { color: var(--muted); }
+.label { font: 600 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+
+/* Header */
+header { border-bottom: 1px solid var(--line2); padding: 28px 0 0; background: var(--panel); }
+.head { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; }
+.head p { max-width: 40em; margin: 0; }
+.status { display: grid; grid-template-columns: auto auto auto; border: 1px solid var(--line2); font-size: 0.85rem; }
+.status div { padding: 6px 12px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.status div:nth-child(3n) { border-right: 0; }
+.status div:nth-last-child(-n+3) { border-bottom: 0; }
+.status .now { color: var(--accent); font-weight: 600; }
+nav { display: flex; gap: 0; margin-top: 24px; overflow-x: auto; scrollbar-width: none; }
+nav button {
+  border: 0; border-bottom: 2px solid transparent; background: none; color: var(--muted);
+  font: 600 0.92rem var(--sans); padding: 10px 16px; cursor: pointer; white-space: nowrap;
+}
+nav button:first-child { padding-left: 0; }
+nav button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+
+main { padding: 32px 0 60px; }
+[role="tabpanel"][hidden] { display: none; }
+.grid { display: grid; gap: 20px; }
+.g2 { grid-template-columns: 1fr 1fr; }
+.g3 { grid-template-columns: repeat(3, 1fr); }
+.g-side { grid-template-columns: 1.5fr 1fr; }
+.box { background: var(--panel); border: 1px solid var(--line); padding: 20px; }
+.box > .label { display: block; margin-bottom: 10px; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-bottom-color: var(--line2); }
+td.num, th.num { text-align: right; font-family: var(--mono); white-space: nowrap; }
+.compare td:first-child { color: var(--muted); width: 22%; }
+.compare th:nth-child(2) { color: var(--accent); }
+.scroll { overflow-x: auto; }
+
+/* Steps */
+.steps { list-style: none; padding: 0; margin: 0; counter-reset: n; }
+.steps li { counter-increment: n; display: grid; grid-template-columns: 34px 1fr; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.steps li::before { content: counter(n, decimal-leading-zero); font: 600 0.85rem var(--mono); color: var(--muted); padding-top: 2px; }
+.steps li.now::before { color: var(--accent); }
+.steps b { display: block; }
+.steps span { color: var(--muted); font-size: 0.92rem; }
+
+.hurdles { counter-reset: h; }
+.hurdle { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; margin-bottom: 16px; }
+
+/* Parts hotspots */
+.parts { position: relative; }
+.parts img { width: 100%; height: auto; display: block; }
+.hot { position: absolute; width: 15%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); border: 3px solid var(--accent); opacity: 0; transition: opacity .15s; pointer-events: none; box-shadow: 0 0 0 2000px rgba(0,0,0,.0); }
+.hot.on { opacity: 1; }
+.bom tr { cursor: default; }
+.bom tr.on td { background: var(--accent-soft); }
+.bom tr.out td { color: var(--muted); text-decoration: line-through; }
+.total { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 10px 0; font-weight: 600; }
+.total .mono { font-size: 1.3rem; }
+
+/* Controls */
+.ctl { margin: 14px 0; }
+.ctl > .label { display: block; margin-bottom: 6px; }
+.seg { display: inline-flex; border: 1px solid var(--line2); }
+.seg button { border: 0; border-right: 1px solid var(--line2); background: transparent; color: var(--ink); font: 0.88rem var(--sans); padding: 6px 12px; cursor: pointer; }
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.out { font: 600 2rem/1 var(--mono); margin: 18px 0 6px; letter-spacing: -0.02em; }
+.out small { font-size: 0.9rem; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+.cmp { margin-top: 14px; }
+.cmp div { display: grid; grid-template-columns: 92px 1fr 64px; gap: 8px; align-items: center; font-size: 0.82rem; margin-bottom: 6px; }
+.cmp i { display: block; height: 10px; background: var(--line2); }
+.cmp i.me { background: var(--accent); }
+.cmp span:last-child { font-family: var(--mono); text-align: right; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 0.92rem; cursor: pointer; }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+/* Risk filter */
+.chips { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.chips button { border: 1px solid var(--line2); background: var(--panel); color: var(--ink); font: 0.85rem var(--sans); padding: 5px 12px; border-radius: 99px; cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pill { font: 600 0.7rem var(--mono); padding: 2px 7px; border: 1px solid currentColor; border-radius: 99px; white-space: nowrap; }
+.pill.r1 { color: var(--accent); } .pill.esp { color: var(--good); } .pill.both { color: var(--muted); }
+
+.states { min-width: 640px; }
+.states td:first-child { white-space: nowrap; }
+.sw { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; }
+
+.notice { border: 1px solid var(--ink); padding: 14px 18px; margin-top: 20px; font-size: 0.95rem; }
+
+footer { border-top: 1px solid var(--line2); padding: 22px 0 48px; font-size: 0.88rem; color: var(--muted); }
+footer a { margin-right: 18px; }
+
+@media (max-width: 860px) {
+  .head, .g2, .g3, .g-side { grid-template-columns: 1fr; }
+  .status { justify-self: start; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="head">
+      <div>
+        <div class="label" style="margin-bottom:8px">Spec sheet · family project · NZ</div>
+        <h1>A walkie-talkie for Grandad</h1>
+        <p>One button: hold to talk, let go to listen. Voice goes over Wi-Fi or mobile data through a small server, so distance doesn't matter. Built in two stages.</p>
+      </div>
+      <div class="status" aria-label="Project stages">
+        <div class="label">Stage</div><div class="label">Hardware</div><div class="label">Status</div>
+        <div class="mono">1</div><div>Rabbit R1, reflashed</div><div class="now">Now</div>
+        <div class="mono">2</div><div>ESP32 build</div><div class="muted">Next</div>
+      </div>
+    </div>
+    <nav role="tablist" aria-label="Sections">
+      <button role="tab" aria-selected="true" aria-controls="overview" id="t-overview">Overview</button>
+      <button role="tab" aria-selected="false" aria-controls="r1" id="t-r1">Stage 1: R1</button>
+      <button role="tab" aria-selected="false" aria-controls="esp" id="t-esp">Stage 2: ESP32</button>
+      <button role="tab" aria-selected="false" aria-controls="numbers" id="t-numbers">Numbers</button>
+      <button role="tab" aria-selected="false" aria-controls="risks" id="t-risks">Risks</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- OVERVIEW -->
+<section role="tabpanel" id="overview" aria-labelledby="t-overview">
+  <div class="grid g-side">
+    <div class="box">
+      <span class="label">Side by side</span>
+      <div class="scroll">
+      <table class="compare">
+        <thead><tr><th></th><th>Stage 1: R1</th><th>Stage 2: ESP32</th></tr></thead>
+        <tbody>
+          <tr><td>Purpose</td><td>Prove the idea with hardware we have</td><td>The unit Grandad keeps</td></tr>
+          <tr><td>Talk button</td><td>Side button, remapped</td><td>30 mm arcade button on top</td></tr>
+          <tr><td>Channels</td><td>Scroll wheel</td><td>Knob with end stops, 3 to 5 channels</td></tr>
+          <tr><td>Screen</td><td>2.88 inch colour, whole screen changes colour</td><td>Small one-colour screen plus a coloured light</td></tr>
+          <tr><td>Battery</td><td>About 1.5 days on standby</td><td>4 to 9 days on standby</td></tr>
+          <tr><td>Setup</td><td>Unlock, reflash, root, lock to one app</td><td>Flash firmware over USB</td></tr>
+          <tr><td>Cost</td><td>Already owned</td><td>About NZ$35 to 50 a unit</td></tr>
+          <tr><td>Weak spot</td><td>No longer made; short battery</td><td>Speaker loudness needs testing</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <div class="box">
+      <span class="label">The same in both stages</span>
+      <ul style="padding-left:18px;margin:0">
+        <li><b>One relay server</b> in Auckland or Sydney. Both walkies dial out to it; it passes messages on.</li>
+        <li><b>Encrypted on the walkie.</b> The server routes messages but can't open them.</li>
+        <li><b>One talker at a time.</b> Press while someone else talks and you get a busy tone.</li>
+        <li><b>Missed messages</b> are kept for 24 hours and play once the walkie is back.</li>
+        <li><b>Alerts</b> to family when a walkie goes offline or its battery runs low.</li>
+        <li><b>Mixed channels.</b> R1s and ESP32 units can be on the same channel.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box" style="margin-top:20px">
+    <span class="label">Sounds and screens</span>
+    <div class="scroll">
+    <table class="states">
+      <thead><tr><th>When</th><th>Sound</th><th>R1 screen</th><th>ESP32 screen and light</th></tr></thead>
+      <tbody>
+        <tr><td>Button pressed, connected</td><td>Squelch chirp within 0.3 s</td><td><span class="sw" style="background:#c43b2e"></span>Red, TALKING</td><td>TALK, red light</td></tr>
+        <tr><td>Button pressed, no connection</td><td>Low double buzz</td><td><span class="sw" style="background:#d4931a"></span>Amber, NOT CONNECTED</td><td>OFFLINE, amber light</td></tr>
+        <tr><td>Someone else is talking</td><td>Busy tone, nothing sent</td><td><span class="sw" style="background:#d4931a"></span>Amber, WAIT</td><td>WAIT, amber light</td></tr>
+        <tr><td>Incoming message</td><td>Short click, then speech</td><td><span class="sw" style="background:#3d7d4f"></span>Green, LISTENING and name</td><td>LISTEN, green light</td></tr>
+        <tr><td>Message ends</td><td>Roger beep and a short hiss</td><td><span class="sw" style="background:#8a857c"></span>Grey, READY</td><td>Channel name</td></tr>
+        <tr><td>Battery under 30%</td><td>"Please put me on my charger"</td><td><span class="sw" style="background:#d4931a"></span>Flashing CHARGE ME</td><td>CHARGE ME</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="notice"><b>Not an emergency alarm.</b> In an emergency, call 111. Each walkie ships with a printed card saying so, and there is no Help or SOS button. If Grandad lives alone or is frail, this goes alongside a monitored medical alarm.</div>
+</section>
+
+<!-- STAGE 1 -->
+<section role="tabpanel" id="r1" aria-labelledby="t-r1" hidden>
+  <div class="grid g2">
+    <div>
+      <h2>Stage 1: Rabbit R1 proof of concept</h2>
+      <p>The R1 is a small Android device with no phone app. It already has a button, a wheel, a 2 W speaker, two microphones, Wi-Fi and a SIM slot. That makes it a quick way to test the server, the sounds and the screens with Grandad before building any hardware.</p>
+      <p>Three things have to change before it can be a walkie:</p>
+      <div class="hurdles">
+        <div class="hurdle"><b>It won't run our app as shipped.</b><br>Rabbit's software has no way to install other apps, so both R1s get backed up and reflashed with LineageOS, a plain version of Android. The R1's chip has a known flaw that means it can always be recovered.</div>
+        <div class="hurdle"><b>The side button is the power button.</b><br>Android never passes the power button to apps. With root access we remap it to a spare key code, then rebuild power off as a long hold.</div>
+        <div class="hurdle"><b>It has to do one thing only.</b><br>The walkie app becomes the device owner and the home screen, so the R1 starts straight into it and nothing else can be opened. It updates itself from our server.</div>
+      </div>
+    </div>
+    <div>
+      <div class="box">
+        <span class="label">R1 hardware</span>
+        <table>
+          <tbody>
+            <tr><td>Chip</td><td>MediaTek Helio P35, 4 GB RAM</td></tr>
+            <tr><td>Screen</td><td>2.88 inch colour touch screen</td></tr>
+            <tr><td>Audio</td><td>2 W speaker, two microphones</td></tr>
+            <tr><td>Controls</td><td>One side button, scroll wheel</td></tr>
+            <tr><td>Wireless</td><td>2.4 GHz Wi-Fi, Bluetooth 5, 4G with nano-SIM</td></tr>
+            <tr><td>Battery</td><td>1000 mAh. 36+ h standby, about 2.5 h heavy use</td></tr>
+            <tr><td>NZ gap</td><td>No 700 MHz band, so weaker mobile signal rurally</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box" style="margin-top:20px">
+        <span class="label">Build plan</span>
+        <ol class="steps">
+          <li class="now"><div><b>Bench night</b><span>Back up, unlock, reflash and root both R1s. Find the button codes and measure audio delay.</span></div></li>
+          <li><div><b>Relay server, one day</b><span>Passes voice between walkies, handles who's talking, keeps the last message.</span></div></li>
+          <li><div><b>Walkie app, one or two weekends</b><span>Record, compress, encrypt, play. Sounds. Wheel changes channel and reads it out.</span></div></li>
+          <li><div><b>Lock down and pairing</b><span>One app only. Pair by scanning a QR code. Settings changed remotely.</span></div></li>
+          <li><div><b>A week with Grandad</b><span>On a dock by his chair. Tune volume and treble, decide whether the wheel stays.</span></div></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 2 -->
+<section role="tabpanel" id="esp" aria-labelledby="t-esp" hidden>
+  <h2>Stage 2: our own unit on an ESP32</h2>
+  <p style="max-width:46em">An ESP32-S3 is a cheap chip with Wi-Fi built in. It can compress and encrypt voice with time to spare, so a whole walkie is the chip plus a handful of parts. No reflashing, no Android, and it starts in about a second. Hover a part to find it in the photo.</p>
+  <div class="grid g-side" style="margin-top:16px">
+    <div>
+      <div class="parts box" style="padding:0">
+        <img src="../images/parts-layout_sml.jpg" alt="Twelve numbered parts laid out on a grey mat" width="1000" height="558">
+        <div id="hots"></div>
+      </div>
+      <p class="muted" style="font-size:0.85rem;margin-top:8px">Generated reference picture of the parts, not a photo of our kit.</p>
+      <div class="box" style="margin-top:12px">
+        <span class="label">Grandad's unit, as specified</span>
+        <ul style="padding-left:18px;margin:0">
+          <li><b>Big button:</b> hold to talk. Nothing else to press.</li>
+          <li><b>Knob:</b> 3 to 5 channels, with end stops so fully left is always channel one. Each click reads the channel name aloud.</li>
+          <li><b>Screen:</b> channel name in large text, plus one word: TALK, LISTEN, WAIT or OFFLINE.</li>
+          <li><b>Knob press:</b> replays the last message.</li>
+          <li><b>Setup:</b> Wi-Fi and keys loaded from a laptop over USB. Hold the button 10 seconds to change Wi-Fi later from a phone.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="box">
+      <span class="label">Parts per unit, NZ$ incl. GST, imported</span>
+      <table class="bom" id="bom">
+        <thead><tr><th>#</th><th>Part</th><th class="num">NZ$</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="total"><span>Per unit</span><span class="mono" id="bomTotal">35 to 50</span></div>
+      <label class="check" style="margin-top:14px"><input type="checkbox" id="noBatt"> Leave out the battery (it stays on its dock)</label>
+      <p class="muted" style="font-size:0.85rem;margin-top:12px">Search prices from November 2026, not checkout quotes, and shipping is extra. The relay server can run on a free cloud plan.</p>
+    </div>
+  </div>
+</section>
+
+<!-- NUMBERS -->
+<section role="tabpanel" id="numbers" aria-labelledby="t-numbers" hidden>
+  <div class="grid g3">
+    <div class="box">
+      <span class="label">Delay, mouth to ear</span>
+      <div class="ctl"><span class="label">Connection</span>
+        <div class="seg" data-group="net"><button type="button" data-v="wifi" aria-pressed="true">Wi-Fi</button><button type="button" data-v="lte" aria-pressed="false">Mobile</button></div></div>
+      <div class="ctl"><span class="label">Server in</span>
+        <div class="seg" data-group="relay"><button type="button" data-v="nz" aria-pressed="true">NZ or Sydney</button><button type="button" data-v="us" aria-pressed="false">USA</button></div></div>
+      <div class="out" id="latOut">70 to 130 <small>ms</small></div>
+      <div class="cmp" id="latCmp"></div>
+      <p class="muted" style="font-size:0.85rem">Estimate. The R1's own audio delay is measured on the first night.</p>
+    </div>
+
+    <div class="box">
+      <span class="label">ESP32 battery off the dock</span>
+      <div class="ctl"><span class="label">Battery</span>
+        <div class="seg" data-group="cap"><button type="button" data-v="1000" aria-pressed="true">1000 mAh</button><button type="button" data-v="2000" aria-pressed="false">2000 mAh</button></div></div>
+      <div class="ctl"><span class="label">Waiting mode</span>
+        <div class="seg" data-group="mode"><button type="button" data-v="22" aria-pressed="false">Always awake</button><button type="button" data-v="5" aria-pressed="true">Dozing</button><button type="button" data-v="3" aria-pressed="false">Best case</button></div></div>
+      <div class="ctl"><span class="label">Talk per day: <span id="talkV">20</span> min</span>
+        <input type="range" id="talk" min="0" max="90" step="5" value="20"></div>
+      <div class="out" id="battOut">4.4 <small>days</small></div>
+      <div class="cmp" id="battCmp"></div>
+      <p class="muted" style="font-size:0.85rem">Uses 80% of the battery, 180 mA while talking. Dozing adds about 0.1 to 0.3 s before the first word, which the walkie hides by recording from the moment you press.</p>
+    </div>
+
+    <div class="box">
+      <span class="label">Mobile data per month</span>
+      <div class="ctl"><span class="label">Talk per day: <span id="dataV">20</span> min</span>
+        <input type="range" id="dataM" min="0" max="90" step="5" value="20"></div>
+      <div class="out" id="dataOut">220 <small>MB</small></div>
+      <p id="dataPlan" style="font-size:0.92rem"></p>
+      <p class="muted" style="font-size:0.85rem">About 21 MB per hour of talk, plus about 12 MB a month to keep the connection open. Only counts when a walkie is on a SIM rather than Wi-Fi.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RISKS -->
+<section role="tabpanel" id="risks" aria-labelledby="t-risks" hidden>
+  <div class="chips" id="chips">
+    <button type="button" data-f="all" aria-pressed="true">All</button>
+    <button type="button" data-f="r1" aria-pressed="false">Stage 1: R1</button>
+    <button type="button" data-f="esp" aria-pressed="false">Stage 2: ESP32</button>
+  </div>
+  <div class="box scroll">
+    <table id="riskTable">
+      <thead><tr><th>Risk</th><th>What happens</th><th>What we do about it</th><th>Stage</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="muted" style="margin-top:14px;font-size:0.92rem">Still to confirm: the R1's real audio delay and speaker loudness, real standby on both devices, and how NZ mobile networks treat a long-lived connection.</p>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <a href="https://github.com/cgbarlow/walkie-talkie/blob/main/Rabbit%20R1%20Walkie-Talkie%20Research%20and%20Design.md">R1 research</a>
+    <a href="https://github.com/cgbarlow/walkie-talkie/blob/main/Walkie-Talkie%20Beyond%20the%20R1%20Minimum%20Hardware.md">ESP32 research</a>
+    <a href="https://github.com/cgbarlow/walkie-talkie">GitHub</a>
+  </div>
+</footer>
+
+<script>
+/* Tabs, with the address bar remembering the open tab */
+const tabs = [...document.querySelectorAll('[role="tab"]')];
+function openTab(id, push) {
+  tabs.forEach(t => {
+    const on = t.getAttribute("aria-controls") === id;
+    t.setAttribute("aria-selected", on);
+    document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+  });
+  if (push) history.replaceState(null, "", "#" + id);
+}
+tabs.forEach(t => t.addEventListener("click", () => openTab(t.getAttribute("aria-controls"), true)));
+document.querySelector('[role="tablist"]').addEventListener("keydown", e => {
+  const i = tabs.indexOf(document.activeElement);
+  if (i < 0) return;
+  const n = e.key === "ArrowRight" ? (i + 1) % tabs.length : e.key === "ArrowLeft" ? (i - 1 + tabs.length) % tabs.length : -1;
+  if (n >= 0) { tabs[n].focus(); tabs[n].click(); }
+});
+const start = location.hash.slice(1);
+if (tabs.some(t => t.getAttribute("aria-controls") === start)) openTab(start);
+
+/* Parts list, linked to the photo */
+const PARTS = [
+  ["ESP32-S3 board", "about 10", 18.5, 21], ["Microphone", "2 to 4", 45, 20], ["Amplifier", "2 to 4", 58, 20],
+  ["Speaker, 3 W", "1.50", 82, 19], ["Big talk button", "2 to 4", 17, 51], ["Channel knob", "2 to 3", 40, 50],
+  ["Small screen", "about 2", 58.5, 51], ["Battery, 1000 mAh", "2 to 8", 81, 51], ["Charger board", "0.50", 17, 80],
+  ["Light and switch", "under 1", 37, 81], ["Wire", "on hand", 58, 81], ["Case", "about 5", 82, 81]
+];
+const hots = document.getElementById("hots"), tbody = document.querySelector("#bom tbody");
+PARTS.forEach(([name, price, x, y], i) => {
+  hots.insertAdjacentHTML("beforeend", `<div class="hot" data-i="${i}" style="left:${x}%;top:${y}%"></div>`);
+  tbody.insertAdjacentHTML("beforeend", `<tr data-i="${i}"><td class="mono">${i + 1}</td><td>${name}</td><td class="num">${price}</td></tr>`);
+});
+const hotEls = [...hots.children], rows = [...tbody.children];
+function mark(i) { hotEls.forEach((h, j) => h.classList.toggle("on", j === i)); rows.forEach((r, j) => r.classList.toggle("on", j === i)); }
+rows.forEach((r, i) => { r.addEventListener("mouseenter", () => mark(i)); r.addEventListener("click", () => mark(i)); });
+document.getElementById("bom").addEventListener("mouseleave", () => mark(-1));
+const partsImg = document.querySelector(".parts");
+partsImg.addEventListener("mousemove", e => {
+  const b = partsImg.getBoundingClientRect(), px = (e.clientX - b.left) / b.width * 100, py = (e.clientY - b.top) / b.height * 100;
+  let best = -1, d = 1e9;
+  PARTS.forEach(([, , x, y], i) => { const dd = (x - px) ** 2 + ((y - py) * 0.56) ** 2; if (dd < d) { d = dd; best = i; } });
+  mark(d < 120 ? best : -1);
+});
+partsImg.addEventListener("mouseleave", () => mark(-1));
+document.getElementById("noBatt").addEventListener("change", e => {
+  rows[7].classList.toggle("out", e.target.checked); rows[8].classList.toggle("out", e.target.checked);
+  document.getElementById("bomTotal").textContent = e.target.checked ? "25 to 30" : "35 to 50";
+});
+
+/* Segmented controls */
+const val = {};
+document.querySelectorAll(".seg").forEach(seg => {
+  const g = seg.dataset.group;
+  val[g] = seg.querySelector('[aria-pressed="true"]').dataset.v;
+  seg.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    seg.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    val[g] = b.dataset.v; update();
+  });
+});
+
+function bars(el, items, max, unit) {
+  el.innerHTML = items.map(([label, v, me]) =>
+    `<div><span>${label}</span><i class="${me ? "me" : ""}" style="width:${Math.min(100, v / max * 100)}%"></i><span>${v}${unit}</span></div>`).join("");
+}
+
+function update() {
+  /* Delay */
+  let lo = val.net === "wifi" ? 70 : 150, hi = val.net === "wifi" ? 130 : 250;
+  if (val.relay === "us") { lo += 130; hi += 160; }
+  document.getElementById("latOut").innerHTML = `${lo} to ${hi} <small>ms</small>`;
+  bars(document.getElementById("latCmp"), [
+    ["This setup", Math.round((lo + hi) / 2), true],
+    ["Push-to-talk target", 300],
+    ["Trunked radio, measured", 410]
+  ], 450, " ms");
+
+  /* Battery */
+  const cap = +val.cap, standby = +val.mode, m = +document.getElementById("talk").value;
+  document.getElementById("talkV").textContent = m;
+  const perDay = standby * (24 - m / 60) + 180 * m / 60;
+  const days = cap * 0.8 / perDay;
+  document.getElementById("battOut").innerHTML = `${days.toFixed(1)} <small>days</small>`;
+  bars(document.getElementById("battCmp"), [["This setup", +days.toFixed(1), true], ["Rabbit R1", 1.5]], 13, " d");
+
+  /* Data */
+  const dm = +document.getElementById("dataM").value;
+  document.getElementById("dataV").textContent = dm;
+  const mb = Math.round(dm / 60 * 21 * 30 + 12);
+  document.getElementById("dataOut").innerHTML = `${mb} <small>MB</small>`;
+  document.getElementById("dataPlan").textContent =
+    mb <= 250 ? "Fits the smallest prepay plans (about NZ$8 for 250 MB every four weeks)."
+    : mb <= 300 ? "Fits a 300 MB prepay plan (about NZ$9 every four weeks)."
+    : "Needs a bigger plan than the cheapest prepay ones.";
+}
+document.getElementById("talk").addEventListener("input", update);
+document.getElementById("dataM").addEventListener("input", update);
+update();
+
+/* Risks */
+const RISKS = [
+  ["Button code unknown", "No talk button until found", "Check on the first night; a small root program is the fallback", "r1"],
+  ["Audio delay unknown", "Could add a tenth of a second or more", "Measure before building anything", "r1"],
+  ["Touch dies after sleep", "Screen stops responding", "Keep the screen on while docked", "r1"],
+  ["No 700 MHz mobile band", "Weak signal in the country or indoors", "Wi-Fi first; test the network at Grandad's", "r1"],
+  ["Short battery", "Dead walkie off the dock", "Dock by his chair, spoken and family alerts", "r1"],
+  ["Rabbit stops supporting R1", "No new units; unlock site may go", "Use the open unlock tool; buy a spare now", "r1"],
+  ["Speaker too quiet", "Grandad can't hear it", "3 W amp, 40 mm+ speaker in a sealed box; test before casing", "esp"],
+  ["Dozing delays first word", "Start of a message clipped or late", "Record from the moment of press; stay awake on the dock", "esp"],
+  ["Battery figures are lab numbers", "Shorter real life", "Measure; plan on the lower figure", "esp"],
+  ["Battery on charge for years", "Wear and safety", "Protected cell, proper charger, charge to 4.1 V", "esp"],
+  ["Firmware drifts from the original", "Harder to maintain", "Keep our changes in one layer", "esp"],
+  ["Server down", "Silent failure", "Paid or free cloud server, not at home; walkie shows NOT CONNECTED", "both"],
+  ["Mistaken for an alarm", "Someone relies on it in an emergency", "Printed card; pair with a monitored alarm", "both"],
+  ["Lost walkie still has the key", "It could listen in", "Re-key the channel remotely", "both"]
+];
+const LABEL = { r1: "R1", esp: "ESP32", both: "Both" };
+function showRisks(f) {
+  document.querySelector("#riskTable tbody").innerHTML = RISKS
+    .filter(r => f === "all" || r[3] === f || r[3] === "both")
+    .map(r => `<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td><span class="pill ${r[3]}">${LABEL[r[3]]}</span></td></tr>`).join("");
+}
+document.getElementById("chips").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  document.querySelectorAll("#chips button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  showRisks(b.dataset.f);
+});
+showRisks("all");
+</script>
+</body>
+</html>
