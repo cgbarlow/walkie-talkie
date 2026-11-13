@@ -59,4 +59,11 @@ To update the progress shown on the site, change the `done` numbers in the `PLAN
 
 ## Licence
 
-[MIT](LICENSE). Use anything here for your own family's radio.
+Free for non-commercial use. Build one for your own family, change it, share it.
+
+- **Code** (including `index.html`): [PolyForm Noncommercial 1.0.0](LICENSE)
+- **Research documents and images:** [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Credit Chris Barlow, don't use them commercially, and share any changed versions under the same licence.
+
+Building or selling radios commercially needs a licence. See [COMMERCIAL.md](COMMERCIAL.md).
+
+Earlier versions of this repository were released under the MIT licence. Copies taken under that licence keep those terms.
