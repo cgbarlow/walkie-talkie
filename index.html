@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="en-NZ" data-style="radio">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grandad's Radio</title>
+<meta name="description" content="A one-button internet radio for Grandad. Hold to talk, let go to listen, or flip the switch to talk hands-free. Built on an ESP32, tested first on the Rabbit R1.">
+<script>
+/* Apply saved look before the page draws, so it doesn't flash. */
+(function () {
+  var r = document.documentElement;
+  try {
+    var s = localStorage.getItem("wt-style"), t = localStorage.getItem("wt-theme"), z = localStorage.getItem("wt-size");
+    if (s) r.dataset.style = s;
+    if (t) r.dataset.theme = t;
+    if (z) r.dataset.size = z;
+  } catch (e) {}
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,600&family=IBM+Plex+Mono:wght@500;600&family=Oswald:wght@500;600&family=Saira+Stencil+One&display=swap" rel="stylesheet">
+<style>
+/* ============ Styles: three looks, each with light and dark ============ */
+
+/* 1. Transistor: a 1960s bedside radio. Cream, walnut and a glass dial. */
+:root, :root[data-style="radio"] {
+  --bg: #f3ece0; --bg2: #e9dfcc; --panel: #fbf7f0; --ink: #2a2118; --muted: #65563f; --line: #d4c4a8;
+  --accent: #b84c14; --accent-ink: #ffffff; --good: #2f7a45; --warn: #a86a00; --bad: #b3261e;
+  --dial-bg: linear-gradient(180deg, #f8edc6, #ecd9a0); --dial-ink: #3b2a17; --needle: #c0281d;
+  --frame: linear-gradient(135deg, #8a5a34, #5e3a20 45%, #9a6a40); --frame-pad: 14px;
+  --head: "Fraunces", Georgia, serif; --head-w: 800; --head-case: none; --head-ls: -0.01em;
+  --radius: 18px; --btn-radius: 999px;
+  --tag-bg: transparent; --tag-ink: var(--ink); --tag-border: 1.5px solid var(--ink); --tag-radius: 999px; --tag-font: 700 0.8rem/1.2 "Atkinson Hyperlegible", sans-serif; --tag-case: none; --tag-ls: 0.02em;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]), :root[data-style="radio"]:not([data-theme="light"]) {
+    --bg: #1b1410; --bg2: #231a14; --panel: #2a2019; --ink: #f2e6d2; --muted: #c2ae92; --line: #4a3a2c;
+    --accent: #f08a3c; --accent-ink: #1b1410; --good: #6cc88a; --warn: #f2b84b; --bad: #ff7b6b;
+    --dial-bg: radial-gradient(120% 140% at 50% 0%, #4a3412, #22180c); --dial-ink: #ffd27f; --needle: #ff5a3c;
+    --frame: linear-gradient(135deg, #5e3a20, #3b2414 45%, #6b4628);
+  }
+}
+:root[data-theme="dark"], :root[data-style="radio"][data-theme="dark"] {
+  --bg: #1b1410; --bg2: #231a14; --panel: #2a2019; --ink: #f2e6d2; --muted: #c2ae92; --line: #4a3a2c;
+  --accent: #f08a3c; --accent-ink: #1b1410; --good: #6cc88a; --warn: #f2b84b; --bad: #ff7b6b;
+  --dial-bg: radial-gradient(120% 140% at 50% 0%, #4a3412, #22180c); --dial-ink: #ffd27f; --needle: #ff5a3c;
+  --frame: linear-gradient(135deg, #5e3a20, #3b2414 45%, #6b4628);
+}
+
+/* 2. Workshop manual: a 1970s service manual. Paper and ink; dark is a blueprint. */
+:root[data-style="manual"] {
+  --bg: #f4f1e8; --bg2: #ebe6d6; --panel: #fcfbf7; --ink: #141414; --muted: #4f4c43; --line: #c9c2ad;
+  --accent: #c2410c; --accent-ink: #ffffff; --good: #2f7a45; --warn: #9a6200; --bad: #b3261e;
+  --dial-bg: #ffffff; --dial-ink: #141414; --needle: #c2410c;
+  --frame: #141414; --frame-pad: 3px;
+  --head: "Oswald", "Arial Narrow", sans-serif; --head-w: 600; --head-case: uppercase; --head-ls: 0.02em;
+  --radius: 0px; --btn-radius: 0px;
+  --tag-bg: var(--ink); --tag-ink: var(--bg); --tag-border: 0; --tag-radius: 0; --tag-font: 600 0.78rem/1.2 "IBM Plex Mono", monospace; --tag-case: uppercase; --tag-ls: 0.06em;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="manual"]:not([data-theme="light"]) {
+    --bg: #0e2a47; --bg2: #113252; --panel: #12365a; --ink: #eef5fc; --muted: #b3c8de; --line: #3a6690;
+    --accent: #ffb000; --accent-ink: #0e2a47; --good: #7ee0a0; --warn: #ffcf5a; --bad: #ff8a7a;
+    --dial-bg: #0e2a47; --dial-ink: #eef5fc; --needle: #ffb000; --frame: #eef5fc;
+  }
+}
+:root[data-style="manual"][data-theme="dark"] {
+  --bg: #0e2a47; --bg2: #113252; --panel: #12365a; --ink: #eef5fc; --muted: #b3c8de; --line: #3a6690;
+  --accent: #ffb000; --accent-ink: #0e2a47; --good: #7ee0a0; --warn: #ffcf5a; --bad: #ff8a7a;
+  --dial-bg: #0e2a47; --dial-ink: #eef5fc; --needle: #ffb000; --frame: #eef5fc;
+}
+
+/* 3. Field set: a shed radio. Khaki canvas, olive panels, label-maker tape; dark is a night panel. */
+:root[data-style="field"] {
+  --bg: #e2dcc5; --bg2: #d7d0b4; --panel: #f0ecdb; --ink: #20231a; --muted: #4f543d; --line: #b3ab8a;
+  --accent: #a8401a; --accent-ink: #ffffff; --good: #2f6f3a; --warn: #8f5a00; --bad: #a3231b;
+  --dial-bg: #2c301e; --dial-ink: #e8f0c4; --needle: #ff6a2b;
+  --frame: #3a3f28; --frame-pad: 16px;
+  --head: "Saira Stencil One", "Atkinson Hyperlegible", sans-serif; --head-w: 400; --head-case: none; --head-ls: 0.01em;
+  --radius: 6px; --btn-radius: 6px;
+  --tag-bg: #111111; --tag-ink: #f2f2f2; --tag-border: 0; --tag-radius: 3px; --tag-font: 700 0.78rem/1.2 "IBM Plex Mono", monospace; --tag-case: uppercase; --tag-ls: 0.14em;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-style="field"]:not([data-theme="light"]) {
+    --bg: #12150e; --bg2: #181c12; --panel: #1f2418; --ink: #e8ecd8; --muted: #aab392; --line: #3a4230;
+    --accent: #9be070; --accent-ink: #12150e; --good: #9be070; --warn: #ffc34d; --bad: #ff7f6e;
+    --dial-bg: #0b0d08; --dial-ink: #9be070; --needle: #ff7a3c; --frame: #2a3020;
+    --tag-bg: #e8ecd8; --tag-ink: #12150e;
+  }
+}
+:root[data-style="field"][data-theme="dark"] {
+  --bg: #12150e; --bg2: #181c12; --panel: #1f2418; --ink: #e8ecd8; --muted: #aab392; --line: #3a4230;
+  --accent: #9be070; --accent-ink: #12150e; --good: #9be070; --warn: #ffc34d; --bad: #ff7f6e;
+  --dial-bg: #0b0d08; --dial-ink: #9be070; --needle: #ff7a3c; --frame: #2a3020;
+  --tag-bg: #e8ecd8; --tag-ink: #12150e;
+}
+
+/* Text size */
+html { font-size: 18px; -webkit-text-size-adjust: 100%; }
+html[data-size="1"] { font-size: 20px; }
+html[data-size="2"] { font-size: 23px; }
+
+/* ============ Base ============ */
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 1rem/1.6 "Atkinson Hyperlegible", system-ui, sans-serif; }
+:root[data-style="manual"][data-theme="dark"] body { background-image: linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px); background-size: 32px 32px; }
+@media (prefers-color-scheme: dark) { :root[data-style="manual"]:not([data-theme="light"]) body { background-image: linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px); background-size: 32px 32px; } }
+a { color: var(--accent); text-underline-offset: 3px; }
+:root[data-style="manual"] a:not(.btn), :root[data-style="field"] a:not(.btn) { color: var(--ink); text-decoration-color: var(--accent); text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+h1, h2, h3 { font-family: var(--head); font-weight: var(--head-w); text-transform: var(--head-case); letter-spacing: var(--head-ls); line-height: 1.08; margin: 0 0 14px; }
+h1 { font-size: clamp(2.4rem, 6.4vw, 4.2rem); }
+h2 { font-size: clamp(1.7rem, 4vw, 2.5rem); }
+h3 { font-size: 1.25rem; line-height: 1.2; }
+:root[data-style="field"] h3, :root[data-style="manual"] h3 { font-family: "Atkinson Hyperlegible", sans-serif; font-weight: 700; text-transform: none; letter-spacing: 0; }
+:root[data-style="radio"] h1 em, :root:not([data-style]) h1 em { font-style: italic; font-weight: 600; }
+h1 em { font-style: normal; color: var(--accent); }
+p { margin: 0 0 14px; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.tag { display: inline-block; background: var(--tag-bg); color: var(--tag-ink); border: var(--tag-border); border-radius: var(--tag-radius); font: var(--tag-font); text-transform: var(--tag-case); letter-spacing: var(--tag-ls); padding: 5px 12px; }
+:root[data-style="field"] .tag { box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 1px 2px rgba(0,0,0,.35); transform: rotate(-0.6deg); }
+section { padding: 72px 0; scroll-margin-top: 64px; }
+section.alt { background: var(--bg2); }
+.section-head { max-width: 46em; margin-bottom: 30px; }
+.section-head .tag { margin-bottom: 14px; }
+:root[data-style="manual"] main { counter-reset: sec; }
+:root[data-style="manual"] main section h2::before { counter-increment: sec; content: counter(sec) ".0  "; color: var(--accent); white-space: pre; }
+
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 2px solid var(--ink); background: transparent; color: var(--ink); font: 700 1rem "Atkinson Hyperlegible", sans-serif; padding: 12px 22px; border-radius: var(--btn-radius); cursor: pointer; text-decoration: none; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+/* ============ Top bar ============ */
+.top { position: sticky; top: 0; z-index: 20; background: var(--bg); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 10px; padding-bottom: 10px; flex-wrap: wrap; }
+.mark { font-family: var(--head); font-weight: var(--head-w); text-transform: var(--head-case); font-size: 1.2rem; display: flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
+.mark i { width: 20px; height: 20px; border-radius: 50%; background: #ea6a1f; box-shadow: inset 0 -3px 0 #b84d10; flex: none; }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.seg { display: inline-flex; border: 1.5px solid var(--line); border-radius: var(--btn-radius); overflow: hidden; background: var(--panel); }
+.seg button { border: 0; background: transparent; color: var(--ink); font: 700 0.82rem "Atkinson Hyperlegible", sans-serif; padding: 7px 12px; cursor: pointer; min-height: 38px; }
+.seg button + button { border-left: 1.5px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.seg .lbl { font-size: 0.78rem; color: var(--muted); padding: 0 10px; display: grid; place-items: center; }
+.icon { width: 18px; height: 18px; vertical-align: -4px; }
+
+/* ============ Hero ============ */
+.hero { display: grid; grid-template-columns: 1fr 0.95fr; gap: 48px; align-items: center; padding: 56px 0 72px; }
+.lede { font-size: 1.25rem; max-width: 30em; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 26px 0; }
+.facts div { border-top: 3px solid var(--ink); padding-top: 8px; }
+.facts b { display: block; font-size: 1.1rem; line-height: 1.25; }
+.facts span { font-size: 0.85rem; color: var(--muted); }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.frame { background: var(--frame); padding: var(--frame-pad); border-radius: calc(var(--radius) + 6px); position: relative; }
+.frame img { display: block; width: 100%; height: auto; border-radius: var(--radius); }
+:root[data-style="field"] .frame::before, :root[data-style="field"] .frame::after { content: ""; position: absolute; width: 8px; height: 8px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #d9dccf, #7d826c); top: 4px; left: 4px; }
+:root[data-style="field"] .frame::after { left: auto; right: 4px; }
+.fig { font: 600 0.8rem "IBM Plex Mono", monospace; color: var(--muted); margin-top: 10px; }
+.fig b { color: var(--ink); }
+
+/* ============ Simulator ============ */
+.trybox { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 40px; align-items: start; }
+.sim { background: var(--panel); border: 1.5px solid var(--line); border-radius: calc(var(--radius) + 4px); padding: 20px; }
+.sim svg { display: block; width: 100%; height: auto; user-select: none; -webkit-user-select: none; touch-action: none; }
+.dial { position: relative; margin: 14px 4px 8px; background: var(--dial-bg); color: var(--dial-ink); border-radius: calc(var(--radius) / 2); border: 1.5px solid var(--line); height: 58px; overflow: hidden; }
+.dial::before { content: ""; position: absolute; left: 0; right: 0; top: 6px; height: 10px; background: repeating-linear-gradient(90deg, currentColor 0 1.5px, transparent 1.5px 12px); opacity: .55; }
+.dial-scale { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(3, 1fr); }
+.dial-scale button { border: 0; background: transparent; color: inherit; font: 600 0.85rem "IBM Plex Mono", monospace; letter-spacing: 0.08em; padding-top: 18px; cursor: pointer; }
+.needle { position: absolute; top: 2px; bottom: 2px; width: 3px; background: var(--needle); border-radius: 2px; transform: translateX(-50%); transition: left .45s cubic-bezier(.3,.7,.3,1); box-shadow: 0 0 6px var(--needle); }
+.hint { text-align: center; color: var(--muted); font-size: 0.92rem; min-height: 3em; margin: 10px 0; }
+.ptt { display: block; width: 100%; border: 0; border-radius: 16px; padding: 18px; cursor: pointer; background: #ea6a1f; color: #fff; font: 700 1.15rem "Atkinson Hyperlegible", sans-serif; box-shadow: inset 0 -5px 0 #b84d10; touch-action: none; user-select: none; -webkit-user-select: none; }
+.ptt.down { transform: translateY(3px); box-shadow: inset 0 -2px 0 #8f3a0b; background: #c95713; }
+.switchrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 14px; }
+.switchrow b { display: block; }
+.switchrow span { font-size: 0.85rem; color: var(--muted); }
+.toggle { flex: none; display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; border: 2px solid var(--ink); background: transparent; cursor: pointer; }
+.toggle span { font: 600 0.78rem "IBM Plex Mono", monospace; letter-spacing: .04em; padding: 7px 11px; border-radius: 999px; color: var(--muted); transition: background .15s; }
+.toggle[aria-checked="false"] span:first-child { background: var(--ink); color: var(--bg); }
+.toggle[aria-checked="true"] span:last-child { background: #d63a2c; color: #fff; }
+.events { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.events button { text-align: left; border: 1.5px solid var(--line); background: transparent; color: var(--ink); border-radius: 12px; padding: 10px 12px; font: 700 0.88rem "Atkinson Hyperlegible", sans-serif; cursor: pointer; }
+.events button small { display: block; font-weight: 400; color: var(--muted); }
+.events button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.events button[aria-pressed="true"] small { color: inherit; opacity: .8; }
+.events button:disabled { opacity: .45; cursor: not-allowed; }
+.legend { list-style: none; padding: 0; margin: 0; }
+.legend li { display: grid; grid-template-columns: 36px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.legend .dot { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 600 0.8rem "IBM Plex Mono", monospace; background: var(--ink); color: var(--bg); }
+.blink { animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+.pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .55; } }
+
+/* ============ Modes ============ */
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.mode { background: var(--panel); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 24px; }
+.mode.open { border-color: #d63a2c; }
+.mode .big { font: 600 1.4rem "IBM Plex Mono", monospace; letter-spacing: 0.06em; margin-bottom: 6px; }
+.mode.open .big { color: #d63a2c; }
+:root[data-theme="dark"] .mode.open .big { color: #ff7b6b; }
+.cmp { width: 100%; border-collapse: collapse; margin-top: 26px; font-size: 0.95rem; }
+.cmp th, .cmp td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.cmp th { font: 600 0.75rem "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.cmp td:first-child { font-weight: 700; width: 24%; }
+.notes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 40px; margin-top: 34px; counter-reset: n; }
+.notes div { counter-increment: n; padding: 16px 0 16px 48px; border-top: 1.5px solid var(--line); position: relative; }
+.notes div::before { content: counter(n); position: absolute; left: 0; top: 14px; width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--ink); display: grid; place-items: center; font: 600 0.9rem "IBM Plex Mono", monospace; }
+:root[data-style="manual"] .notes div::before, :root[data-style="field"] .notes div::before { border-radius: 0; }
+.notes p { margin: 0; }
+.proposal { margin-top: 26px; border: 2px dashed var(--line); border-radius: var(--radius); padding: 16px 20px; }
+
+/* ============ Shapes ============ */
+.shapes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+.shape { margin: 0; }
+.shape .pic { position: relative; border-radius: var(--radius); overflow: hidden; aspect-ratio: 805 / 1000; background: var(--line); }
+.shape img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.shape .pick { position: absolute; top: 12px; left: 12px; }
+.shape figcaption { padding-top: 12px; }
+.shape figcaption p { margin: 4px 0 0; font-size: 0.95rem; }
+.shape .sw { font-size: 0.88rem; color: var(--muted); margin-top: 6px; }
+.flip { position: absolute; right: 10px; bottom: 10px; border: 0; border-radius: 999px; padding: 8px 14px; background: rgba(0,0,0,.72); color: #fff; font: 700 0.85rem "Atkinson Hyperlegible", sans-serif; cursor: pointer; }
+
+/* ============ Inside ============ */
+.inside { display: grid; grid-template-columns: 1.35fr 1fr; gap: 32px; align-items: start; }
+.photo { position: relative; }
+.photo img { width: 100%; height: auto; display: block; border-radius: var(--radius); }
+.ring { position: absolute; width: 16%; aspect-ratio: 1; border: 4px solid #ea6a1f; border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; opacity: 0; transition: opacity .15s, left .2s, top .2s; box-shadow: 0 0 0 3px rgba(255,255,255,.6); }
+.ring.on { opacity: 1; }
+.bom { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.bom td { padding: 8px 10px; border-bottom: 1px solid var(--line); }
+.bom td:first-child { font: 600 0.82rem "IBM Plex Mono", monospace; color: var(--muted); width: 2.4em; }
+.bom td:last-child { text-align: right; font-family: "IBM Plex Mono", monospace; white-space: nowrap; }
+.bom tr { cursor: pointer; }
+.bom tr.on td { background: var(--bg2); }
+section.alt .bom tr.on td { background: var(--panel); }
+.bom tr.new td { color: var(--accent); }
+.bom tr.new td:nth-child(2) { font-weight: 700; }
+.total { display: flex; justify-content: space-between; font-weight: 700; padding: 14px 10px 0; }
+
+/* ============ Stages ============ */
+.stages { display: grid; gap: 22px; position: relative; }
+.stage { display: grid; grid-template-columns: 210px 1fr; gap: 30px; background: var(--panel); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 26px; }
+.stage.now { border: 2px solid var(--accent); }
+.stage .when { font: 600 0.8rem "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.stage .num { font-family: var(--head); font-weight: var(--head-w); font-size: 3.2rem; line-height: 1; margin: 6px 0; }
+.bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin-top: 14px; }
+.bar span { display: block; height: 100%; width: 0; background: var(--accent); }
+.steps { list-style: none; padding: 0; margin: 14px 0 0; }
+.steps li { display: grid; grid-template-columns: 24px 1fr; gap: 12px; padding: 9px 0; border-top: 1px solid var(--line); }
+.steps .box { width: 18px; height: 18px; border: 2px solid var(--muted); border-radius: 4px; margin-top: 4px; }
+.steps li.done .box { background: var(--good); border-color: var(--good); }
+.steps li.current .box { border-color: var(--accent); box-shadow: inset 0 0 0 3px var(--panel), inset 0 0 0 10px var(--accent); }
+.steps b { display: block; }
+.steps span { color: var(--muted); font-size: 0.92rem; }
+
+/* ============ Numbers ============ */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+.stat { border-top: 4px solid var(--ink); padding-top: 12px; }
+.stat .n { font: 600 1.7rem/1.1 "IBM Plex Mono", monospace; letter-spacing: -0.02em; }
+.stat .k { font-weight: 700; margin-top: 4px; }
+.stat p { color: var(--muted); font-size: 0.9rem; margin: 6px 0 0; }
+
+/* ============ Grandad's card ============ */
+.card { background: #fffdf6; color: #1a1a1a; max-width: 720px; margin: 0 auto; border: 3px solid #1a1a1a; border-radius: 10px; padding: 34px 38px; font-size: 1.25rem; line-height: 1.5; box-shadow: 8px 8px 0 rgba(0,0,0,.18); }
+.card h2 { font-family: "Fraunces", Georgia, serif; font-weight: 800; text-transform: none; letter-spacing: -0.01em; color: #1a1a1a; }
+.card h2::before { content: none !important; }
+.card ol { padding-left: 1.3em; margin: 0 0 20px; }
+.card li { margin-bottom: 12px; }
+.card .orange { color: #b84c14; font-weight: 700; }
+.card .red { color: #b3261e; font-weight: 700; }
+.card .alarm { border-top: 3px solid #1a1a1a; padding-top: 16px; font-weight: 700; }
+.printrow { text-align: center; margin-top: 22px; }
+
+/* ============ Questions and footer ============ */
+details { border-bottom: 1.5px solid var(--line); }
+summary { cursor: pointer; font-weight: 700; padding: 16px 0; list-style: none; display: flex; justify-content: space-between; gap: 16px; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; font: 600 1.3rem "IBM Plex Mono", monospace; color: var(--muted); }
+details[open] summary::after { content: "\2212"; }
+details p { max-width: 46em; }
+footer { border-top: 1.5px solid var(--line); padding: 34px 0 60px; color: var(--muted); font-size: 0.92rem; }
+footer ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 26px; }
+
+/* ============ Small screens ============ */
+@media (max-width: 900px) {
+  .hero, .trybox, .inside, .modes { grid-template-columns: 1fr; }
+  .hero { gap: 30px; padding-top: 30px; }
+  .shapes { grid-template-columns: 1fr 1fr; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .notes { grid-template-columns: 1fr; }
+  .stage { grid-template-columns: 1fr; gap: 10px; }
+}
+@media (max-width: 560px) {
+  section { padding: 52px 0; }
+  .shapes { grid-template-columns: 1fr; }
+  .facts { grid-template-columns: 1fr; }
+  .events { grid-template-columns: 1fr 1fr; }
+  .card { padding: 24px 20px; font-size: 1.1rem; }
+  .cmp td:first-child { width: auto; }
+  .top { position: static; }
+  .top .wrap { justify-content: center; }
+  .mark { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blink, .pulse { animation: none; }
+  .needle, .toggle span { transition: none; }
+}
+@media print {
+  body * { visibility: hidden; }
+  #card, #card * { visibility: visible; }
+  #card { position: absolute; left: 0; top: 0; box-shadow: none; max-width: none; width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="mark" href="#"><i></i>Grandad's radio</a>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Look">
+        <button type="button" data-set-style="radio">Transistor</button>
+        <button type="button" data-set-style="manual">Workshop</button>
+        <button type="button" data-set-style="field">Field set</button>
+      </div>
+      <div class="seg" role="group" aria-label="Light or dark">
+        <button type="button" id="themeBtn" aria-label="Switch to dark"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path id="themeIcon" d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg> <span id="themeLbl">Dark</span></button>
+      </div>
+      <div class="seg" role="group" aria-label="Text size">
+        <button type="button" data-set-size="0" aria-label="Normal text">A</button>
+        <button type="button" data-set-size="1" aria-label="Large text" style="font-size:.95rem">A</button>
+        <button type="button" data-set-size="2" aria-label="Largest text" style="font-size:1.1rem">A</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- The radio -->
+<div class="wrap hero">
+  <div>
+    <span class="tag">One button · made for Grandad</span>
+    <h1 style="margin-top:18px">Hold to talk.<br><em>Let go to listen.</em></h1>
+    <p class="lede">A small radio with one big orange button. It reaches the family over Wi-Fi, whether they're in the next room or the next town. Flip the switch and you can talk hands-free.</p>
+    <div class="facts">
+      <div><b>One button</b><span>plus a knob to pick who</span></div>
+      <div><b>Days on a charge</b><span>lives on a stand by his chair</span></div>
+      <div><b>About NZ$40</b><span>in parts, built at home</span></div>
+    </div>
+    <div class="cta">
+      <a class="btn primary" href="#try">Try it</a>
+      <a class="btn" href="#inside">See inside</a>
+    </div>
+  </div>
+  <figure style="margin:0">
+    <div class="frame"><img src="images/bedside-radio_sml.jpg" alt="A sage green radio on a bedside table, with a big orange button on top, a speaker grille, a small screen reading CHRIS and a black knob" width="805" height="1000"></div>
+    <figcaption class="fig"><b>Fig. 1</b> The bedside radio. A concept picture: the first one is still being designed.</figcaption>
+  </figure>
+</div>
+
+<!-- Try it -->
+<section class="alt" id="try">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">Try it</span>
+      <h2>Have a go</h2>
+      <p>Hold the orange button (or the space bar) to talk. Turn the knob, flip the switch, or have Chris call in. Turn your sound on.</p>
+    </div>
+    <div class="trybox">
+      <div class="sim">
+        <svg id="dev" viewBox="0 0 360 320" aria-label="Drawing of the radio">
+          <rect x="132" y="50" width="96" height="16" rx="6" fill="#1d1d1d"/>
+          <rect id="btn" x="146" y="24" width="68" height="34" rx="12" fill="#ea6a1f" style="cursor:pointer"/>
+          <rect x="26" y="60" width="308" height="244" rx="26" fill="#93ab8c"/>
+          <rect x="26" y="60" width="308" height="244" rx="26" fill="none" stroke="#6f8a69" stroke-width="3"/>
+          <g id="grille" fill="#55684f"></g>
+          <text x="76" y="238" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="11" fill="#2d3a2a">PUSH</text>
+          <text x="144" y="238" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="11" fill="#2d3a2a">OPEN</text>
+          <g id="sw" style="cursor:pointer">
+            <rect x="70" y="220" width="80" height="70" fill="transparent"/>
+            <circle cx="110" cy="266" r="13" fill="#b9bdb7" stroke="#7f837d" stroke-width="2"/>
+            <circle cx="110" cy="266" r="7" fill="#e6e8e4"/>
+            <g id="lever" transform="rotate(-38 110 266)">
+              <line x1="110" y1="266" x2="110" y2="240" stroke="#dfe2de" stroke-width="6" stroke-linecap="round"/>
+              <line x1="110" y1="266" x2="110" y2="240" stroke="#9fa39e" stroke-width="1.5" stroke-linecap="round" transform="translate(2 0)"/>
+              <circle cx="110" cy="238" r="6.5" fill="#f3f4f1" stroke="#8d918c" stroke-width="1.5"/>
+            </g>
+          </g>
+          <rect x="196" y="96" width="112" height="56" rx="5" fill="#0b0b0b"/>
+          <text id="oCh" x="252" y="117" text-anchor="middle" fill="#e8e8e8" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="12">CHRIS</text>
+          <text id="oWord" x="252" y="142" text-anchor="middle" fill="#ffffff" font-family="IBM Plex Mono, monospace" font-weight="600" font-size="20">READY</text>
+          <circle id="led" cx="320" cy="124" r="5.5" fill="#3e4a3c"/>
+          <g id="knob" style="cursor:ew-resize">
+            <circle cx="252" cy="236" r="31" fill="#1d1d1d"/>
+            <circle cx="252" cy="236" r="25" fill="#2b2b2b"/>
+            <line id="pointer" x1="252" y1="236" x2="252" y2="214" stroke="#eeeeee" stroke-width="3" stroke-linecap="round"/>
+          </g>
+        </svg>
+        <div class="dial" aria-label="Channel dial">
+          <div class="dial-scale">
+            <button type="button" data-ch="0">CHRIS</button>
+            <button type="button" data-ch="1">FAMILY</button>
+            <button type="button" data-ch="2">TEST</button>
+          </div>
+          <div class="needle" id="needle" style="left:16.67%"></div>
+        </div>
+        <p class="hint" id="hint" aria-live="polite">Hold the button below, or hold the space bar.</p>
+        <button class="ptt" id="ptt" type="button">Hold to talk</button>
+        <div class="switchrow">
+          <div><b>Talk mode switch</b><span id="swText">PUSH: hold the button to talk</span></div>
+          <button class="toggle" id="toggle" type="button" role="switch" aria-checked="false" aria-label="Open channel"><span>PUSH</span><span>OPEN</span></button>
+        </div>
+        <div class="events">
+          <button type="button" id="evCall">Chris calls in<small>Hear a message arrive</small></button>
+          <button type="button" id="evQuiet" disabled>Ten quiet minutes<small>Only when OPEN</small></button>
+          <button type="button" id="evNet" aria-pressed="false"><span>Wi-Fi drops</span><small>Try to talk with no link</small></button>
+          <button type="button" id="evBatt" aria-pressed="false"><span>Battery low</span><small>Off the stand too long</small></button>
+        </div>
+      </div>
+      <div>
+        <h3>What's on it</h3>
+        <ul class="legend">
+          <li><span class="dot" style="background:#ea6a1f;color:#fff">1</span><div><b>The orange button</b><br>Hold it to talk. It chirps when it's ready, so the first word isn't lost.</div></li>
+          <li><span class="dot">2</span><div><b>The knob</b><br>Picks who you're talking to. Each click says the name out loud, and it stops at each end so fully left is always Chris.</div></li>
+          <li><span class="dot">3</span><div><b>The screen and light</b><br>One word in big letters: TALK, LISTEN, WAIT or OFFLINE. The light beside it is red whenever the microphone can hear.</div></li>
+          <li><span class="dot">4</span><div><b>The PUSH / OPEN switch</b><br>New. PUSH is a normal walkie-talkie. OPEN lets you talk hands-free, taking turns. More on that below.</div></li>
+          <li><span class="dot">5</span><div><b>Press the knob</b><br>Plays the last message again.</div></li>
+        </ul>
+        <p class="small muted" style="margin-top:14px">The sounds here are rough versions made in your browser. Spoken names use your browser's voice.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Two ways to talk -->
+<section id="modes">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">New idea · design proposal</span>
+      <h2>Two ways to talk</h2>
+      <p>A switch on the front sets how the radio talks. Holding a button down is fine for a quick message, but harder for a long chat or for stiff hands. So the radio gets a second mode.</p>
+    </div>
+    <div class="modes">
+      <div class="mode">
+        <div class="big">PUSH</div>
+        <h3>Like a walkie-talkie</h3>
+        <p>Hold the button, talk, let go. The microphone only hears you while the button is down. This is how it starts out of the box.</p>
+      </div>
+      <div class="mode open">
+        <div class="big">OPEN</div>
+        <h3>Hands-free, taking turns</h3>
+        <p>Flip the switch and just talk. It sends when you speak and goes quiet when you stop. When Chris talks back, you hear them. The red light stays on the whole time, so you know it can hear you.</p>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+    <table class="cmp">
+      <thead><tr><th></th><th>PUSH</th><th>OPEN</th></tr></thead>
+      <tbody>
+        <tr><td>Microphone on</td><td>Only while the button is held</td><td>Whenever the switch is on OPEN. Red light on.</td></tr>
+        <tr><td>Who can talk</td><td>One at a time</td><td>One at a time, swapping by itself</td></tr>
+        <tr><td>Channels</td><td>Any channel on the knob</td><td>Chris's channel only. The knob is locked.</td></tr>
+        <tr><td>Off the stand</td><td>4 to 9 days</td><td>About a day if mostly quiet, about 4 hours of solid talking</td></tr>
+        <tr><td>Data</td><td>Only when someone talks</td><td>Only when someone talks. Silence sends nothing.</td></tr>
+      </tbody>
+    </table>
+    </div>
+
+    <h3 style="margin-top:46px">The thinking behind the switch</h3>
+    <div class="notes">
+      <div><h3>A switch, not a setting</h3><p>You can see and feel which way it's set, even in the dark. Nobody can change it from somewhere else. That's the main reason for a physical switch.</p></div>
+      <div><h3>Taking turns, not a phone call</h3><p>While Chris is talking, Grandad's microphone is muted so the speaker doesn't echo back down the line. A true two-way call needs echo cancelling, which takes about a third of the chip and probably a different sound board. That can come later.</p></div>
+      <div><h3>The red light rule</h3><p>If the red light is on, the microphone can hear. In OPEN it stays on, the screen says OPEN, and Chris's radio shows that Grandad's channel is open.</p></div>
+      <div><h3>It says what it's doing</h3><p>Flip to OPEN and it says "Channel open to Chris". Flip back and it says "Channel closed".</p></div>
+      <div><h3>Only Chris's channel</h3><p>OPEN tunes to channel one and locks the knob. A family group never gets an open microphone by mistake.</p></div>
+      <div><h3>It pauses itself</h3><p>After ten minutes of nobody talking, it pauses and says so. Press the orange button to carry on. Pressing it any time in OPEN pauses or resumes.</p></div>
+      <div><h3>Best on the stand</h3><p>In OPEN the radio has to stay fully awake, so the battery goes in hours rather than days. It's meant for when it's sitting on its stand.</p></div>
+      <div><h3>Grandad decides</h3><p>It's his radio and his switch. We explain it, ask him, and ask again later. The printed card says what the red light means.</p></div>
+    </div>
+    <div class="proposal">
+      <b>Still to work out.</b> Whether ten minutes is the right pause. Whether voice-activated sending clips the first word (the radio records from the moment it hears sound, which should help). Which toggle switch feels best under an older thumb. None of this is tested yet: the R1 stage will try OPEN as a hidden setting first, before we drill a hole for a real switch.
+    </div>
+  </div>
+</section>
+
+<!-- Shapes -->
+<section class="alt" id="shapes">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">Three shapes</span>
+      <h2>Pick a shape</h2>
+      <p>The same parts fit three different cases. All of these are generated concept pictures, not photos of real units.</p>
+    </div>
+    <div class="shapes">
+      <figure class="shape">
+        <div class="pic"><img src="images/bedside-radio_sml.jpg" alt="Sage green tabletop radio with orange button on top, grille, screen and knob" loading="lazy" width="805" height="1000"><span class="tag pick" style="background:var(--accent);color:var(--accent-ink);border:0">Our pick for Grandad</span></div>
+        <figcaption><h3>Bedside radio</h3><p>Sits on its stand by the chair, always charged. The button is on top, right where a hand lands.</p><div class="sw">Switch: on the front, below the grille.</div></figcaption>
+      </figure>
+      <figure class="shape">
+        <div class="pic"><img src="images/classic-handheld_sml.jpg" alt="Cream handheld walkie-talkie with grille, screen, big orange button and knob on top" loading="lazy" width="805" height="1000"></div>
+        <figcaption><h3>Classic handheld</h3><p>The walkie-talkie shape everyone already knows. Good for carrying round the house or garden.</p><div class="sw">Switch: on the side, under the thumb.</div></figcaption>
+      </figure>
+      <figure class="shape">
+        <div class="pic"><img id="pebble" src="images/pocket-pebble-front_sml.jpg" alt="Navy pebble-shaped radio in a hand, front view" loading="lazy" width="805" height="1000"><button class="flip" type="button" id="flip">Show back</button></div>
+        <figcaption><h3>Pocket pebble</h3><p>Small enough for a pocket or a lanyard. The knob is a ring around the button.</p><div class="sw">Switch: a small slider on the edge. Harder to see, so OPEN suits it least.</div></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- Inside -->
+<section id="inside">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">Parts</span>
+      <h2>What's inside</h2>
+      <p>One small ESP32 chip does the work: Wi-Fi, squeezing the voice down, and locking it so only our radios can hear it. Everything else is a handful of cheap parts. Tap a part to find it in the picture.</p>
+    </div>
+    <div class="inside">
+      <div>
+        <div class="photo" id="photo">
+          <img src="images/parts-layout_sml.jpg" alt="Twelve numbered parts laid out on a grey mat" loading="lazy" width="1000" height="558">
+          <div class="ring" id="ring"></div>
+        </div>
+        <p class="fig"><b>Fig. 2</b> The parts for one radio. A generated reference picture, not our actual kit.</p>
+      </div>
+      <div>
+        <table class="bom"><tbody id="bom"></tbody></table>
+        <div class="total"><span>Per radio</span><span>about NZ$35 to 50</span></div>
+        <p class="small muted" style="margin:10px 10px 0">Or about NZ$25 to 30 without a battery, if it never leaves its stand. Prices are November 2026 search prices including GST, not quotes. Shipping is extra.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stages -->
+<section class="alt" id="stages">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">How we get there</span>
+      <h2>Two stages</h2>
+      <p>First we prove the idea on hardware we already own. Then we build the radio above.</p>
+    </div>
+    <div class="stages" id="stageList"></div>
+  </div>
+</section>
+
+<!-- Numbers -->
+<section id="numbers">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">The numbers</span>
+      <h2>How it adds up</h2>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="n">0.1 s</div><div class="k">Delay on Wi-Fi</div><p>Mouth to ear, through the server and back. About 0.2 s on mobile data. Emergency-service radio networks measure about 0.4 s.</p></div>
+      <div class="stat"><div class="n">4 to 9 days</div><div class="k">Battery in PUSH</div><p>With 20 minutes of talk a day on a 1000 mAh battery. The R1 manages about a day and a half.</p></div>
+      <div class="stat"><div class="n">NZ$0 to 10</div><div class="k">Server, per month</div><p>A free cloud plan works; a paid one in Auckland or Sydney is under NZ$10 a month.</p></div>
+      <div class="stat"><div class="n">200 MB</div><div class="k">Data, per month</div><p>For 20 minutes a day. Only matters on a SIM card; at home it uses the Wi-Fi.</p></div>
+    </div>
+    <p class="small muted" style="margin-top:22px">Estimates from our research. Real figures get measured on the bench.</p>
+  </div>
+</section>
+
+<!-- Grandad's card -->
+<section class="alt" id="card-section">
+  <div class="wrap">
+    <div class="section-head" style="text-align:center;margin-left:auto;margin-right:auto">
+      <span class="tag">For Grandad</span>
+      <h2>The card that comes with it</h2>
+      <p>Printed and kept beside the radio.</p>
+    </div>
+    <div class="card" id="card">
+      <h2>Your radio</h2>
+      <ol>
+        <li><b>To talk:</b> hold the <span class="orange">orange button</span>, wait for the chirp, then talk. Let go when you've finished.</li>
+        <li><b>To listen:</b> you don't need to do anything. It clicks, then you hear them.</li>
+        <li><b>To choose who:</b> turn the knob. It says the name out loud.</li>
+        <li><b>To talk without holding the button:</b> flip the switch to OPEN. The <span class="red">red light</span> means it can hear you. Flip it back to PUSH to stop.</li>
+        <li><b>To hear the last message again:</b> press the knob.</li>
+      </ol>
+      <p>Keep it on its stand so it stays charged.</p>
+      <p class="alarm">This is not an emergency alarm. In an emergency, call 111.</p>
+    </div>
+    <div class="printrow"><button class="btn" type="button" onclick="window.print()">Print the card</button></div>
+  </div>
+</section>
+
+<!-- Questions -->
+<section id="questions">
+  <div class="wrap">
+    <div class="section-head"><span class="tag">Questions</span><h2>Questions</h2></div>
+    <details><summary>Is it an emergency alarm?</summary><p>No. In an emergency, call 111. The radio has no Help or SOS button. If Grandad lives alone or is frail, it sits alongside a monitored medical alarm, not instead of one.</p></details>
+    <details><summary>Can anyone listen in?</summary><p>No. Each message is locked on the radio and only unlocked on the other radios. The server in the middle passes messages on but can't open them. The microphone only hears while the button is held, or while the switch is on OPEN with the red light on. There's no way to switch it on from somewhere else.</p></details>
+    <details><summary>Why not just buy a pair of walkie-talkies?</summary><p>If you live within a kilometre or two, a pair of licence-free UHF radios for about $80 is simpler. They fall down on distance, hills, privacy (anyone can tune in), replaying missed messages and telling family when the battery is low.</p></details>
+    <details><summary>What's the Rabbit R1 got to do with it?</summary><p>The R1 is a small gadget that happens to have a button, a wheel, a speaker and Wi-Fi. We already own two, so they're the quickest way to test the idea with Grandad. Rabbit has stopped making them and the battery is short, so it isn't the final radio.</p></details>
+    <details><summary>Can more of the family join?</summary><p>Yes. Each channel can hold several radios, and the knob picks the channel. OPEN only works on the two-person channel to Chris.</p></details>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <ul>
+      <li><a href="https://github.com/cgbarlow/walkie-talkie/blob/main/Walkie-Talkie%20Beyond%20the%20R1%20Minimum%20Hardware.md">ESP32 hardware research</a></li>
+      <li><a href="https://github.com/cgbarlow/walkie-talkie/blob/main/Rabbit%20R1%20Walkie-Talkie%20Research%20and%20Design.md">R1 research and design</a></li>
+      <li><a href="https://github.com/cgbarlow/walkie-talkie">Source on GitHub</a></li>
+    </ul>
+    <p>A family project in New Zealand. Not a product, and not for sale.</p>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   Progress. Edit "done" (number of finished steps) as work moves on.
+   ========================================================= */
+const PLAN = [
+  { id: "r1", title: "Prove it on the Rabbit R1", when: "Stage 1 · now", done: 0,
+    text: "Two R1s, wiped and set up to run one app. They already have a button, a wheel, a speaker and Wi-Fi, so we can test the server, the sounds and the screens with Grandad before building anything. We'll also try OPEN mode here as a hidden setting.",
+    steps: [
+      ["Bench night", "Back up, unlock and reflash both R1s. Find the button codes and measure the audio delay."],
+      ["Relay server", "A small server in Auckland or Sydney that passes voice between radios and keeps the last message."],
+      ["Radio app", "Record, squeeze, lock and play. Chirps, busy tone and roger beep. The wheel changes channel."],
+      ["Lock it down", "The app becomes the only thing the R1 can run. Pairing by QR code, updates from the server."],
+      ["A week with Grandad", "On a stand by his chair. Tune the volume and treble. Try OPEN mode and ask him what he thinks."]
+    ]},
+  { id: "esp", title: "Build the radio on an ESP32", when: "Stage 2 · next", done: 0,
+    text: "Our own radio from cheap parts, using the same server and sounds as the R1s, so both can share a channel. No reflashing, and days on a battery.",
+    steps: [
+      ["Breadboard night", "Wire up the chip, microphone, amplifier, speaker, screen, knob, button and switch. Check it's loud enough."],
+      ["Firmware", "Adapt open-source ESP32 voice firmware to our server. Add PUSH and OPEN modes."],
+      ["Setup tool", "A laptop script loads Wi-Fi and keys over USB."],
+      ["Control page", "A web page for channels, battery and offline alerts, and ringing a lost radio."],
+      ["Power", "Dozing off the stand, fully awake on it. Measure real battery life in both modes."],
+      ["Case and trial", "Print the case, fit the stand, then a week with Grandad."]
+    ]}
+];
+
+const $ = id => document.getElementById(id);
+
+/* ---------- Look: style, light or dark, text size ---------- */
+const root = document.documentElement;
+function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function isDark() { return root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; }
+function paintControls() {
+  const st = root.dataset.style || "radio";
+  document.querySelectorAll("[data-set-style]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.setStyle === st)));
+  const sz = root.dataset.size || "0";
+  document.querySelectorAll("[data-set-size]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.setSize === sz)));
+  const d = isDark();
+  $("themeLbl").textContent = d ? "Light" : "Dark";
+  $("themeBtn").setAttribute("aria-label", d ? "Switch to light" : "Switch to dark");
+  $("themeIcon").setAttribute("d", d
+    ? "M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M5.6 18.4l-1.4 1.4M19.8 4.2l-1.4 1.4M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10z"
+    : "M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z");
+}
+document.querySelectorAll("[data-set-style]").forEach(b => b.addEventListener("click", () => { root.dataset.style = b.dataset.setStyle; save("wt-style", b.dataset.setStyle); paintControls(); }));
+document.querySelectorAll("[data-set-size]").forEach(b => b.addEventListener("click", () => { root.dataset.size = b.dataset.setSize; save("wt-size", b.dataset.setSize); paintControls(); }));
+$("themeBtn").addEventListener("click", () => { const t = isDark() ? "light" : "dark"; root.dataset.theme = t; save("wt-theme", t); paintControls(); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", paintControls);
+paintControls();
+
+/* ---------- Sounds, made in the browser ---------- */
+let ctx;
+function ac() {
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === "suspended") ctx.resume();
+  return ctx;
+}
+function tone(f, t0, dur, type = "sine", gain = 0.15) {
+  const c = ac(), o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(gain, t0 + 0.005);
+  g.gain.setValueAtTime(gain, t0 + dur - 0.01); g.gain.linearRampToValueAtTime(0, t0 + dur);
+  o.connect(g).connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+function noise(t0, dur, freq = 2500, q = 0.8, gain = 0.3) {
+  const c = ac(), n = Math.floor(c.sampleRate * dur), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+  const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = b; f.type = "bandpass"; f.frequency.value = freq; f.Q.value = q;
+  g.gain.setValueAtTime(gain, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+  s.connect(f).connect(g).connect(c.destination); s.start(t0);
+}
+const snd = {
+  chirp()    { const t = ac().currentTime; noise(t, 0.06, 3000, 1, 0.35); tone(1750, t + 0.05, 0.07, "sine", 0.12); },
+  kerchunk() { const t = ac().currentTime; noise(t, 0.09, 1800, 0.7, 0.4); tone(110, t, 0.04, "square", 0.06); },
+  roger()    { const t = ac().currentTime; tone(1200, t, 0.08, "sine", 0.12); tone(1600, t + 0.09, 0.1, "sine", 0.12); noise(t + 0.21, 0.28, 2500, 0.6, 0.3); },
+  busy()     { const t = ac().currentTime; for (let i = 0; i < 3; i++) tone(480, t + i * 0.25, 0.12, "sine", 0.13); },
+  buzz()     { const t = ac().currentTime; tone(160, t, 0.15, "square", 0.08); tone(160, t + 0.22, 0.15, "square", 0.08); },
+  click()    { const t = ac().currentTime; tone(2400, t, 0.012, "square", 0.05); },
+  thunk()    { const t = ac().currentTime; tone(90, t, 0.03, "square", 0.05); },
+  clack()    { const t = ac().currentTime; noise(t, 0.035, 900, 1.2, 0.5); tone(140, t, 0.025, "square", 0.07); }
+};
+function speak(text, onend) {
+  const t0 = Date.now(), minMs = onend ? 2600 : 0;
+  let done = false;
+  const fin = () => { if (!done) { done = true; if (onend) setTimeout(onend, Math.max(0, minMs - (Date.now() - t0))); } };
+  if (!("speechSynthesis" in window)) { fin(); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text); u.rate = 0.95; u.lang = "en-NZ";
+  u.onend = fin; u.onerror = fin;
+  setTimeout(fin, Math.max(2600, text.length * 90));
+  speechSynthesis.speak(u);
+}
+
+/* ---------- The radio ---------- */
+const grille = $("grille");
+for (let r = 0; r <= 55; r += 11) {
+  const n = r === 0 ? 1 : Math.round(2 * Math.PI * r / 11);
+  for (let i = 0; i < n; i++) {
+    const a = i / n * Math.PI * 2;
+    grille.insertAdjacentHTML("beforeend", `<circle cx="${(110 + r * Math.cos(a)).toFixed(1)}" cy="${(150 + r * Math.sin(a)).toFixed(1)}" r="3.4"/>`);
+  }
+}
+
+const CHANNELS = ["CHRIS", "FAMILY", "TEST"];
+const SPOKEN = ["Channel one, Chris.", "Channel two, family.", "Channel three, test."];
+const S = { mode: "push", ch: 0, state: "ready", online: true, incoming: false, low: false, paused: false, talkStart: 0, timer: null };
+const LOOK = {
+  ready:   ["READY", "#3e4a3c"],
+  talk:    ["TALK", "#ff3b2a"],
+  listen:  ["LISTEN", "#2fd36b"],
+  wait:    ["WAIT", "#ffb21a"],
+  offline: ["OFFLINE", "#ffb21a"],
+  charge:  ["CHARGE ME", "#ffb21a"],
+  open:    ["OPEN", "#ff3b2a"],
+  paused:  ["PAUSED", "#ffb21a"]
+};
+let pressed = false;
+
+function idle() {
+  if (!S.online) return "offline";
+  if (S.incoming) return "listen";
+  if (S.mode === "open") return S.paused ? "paused" : "open";
+  if (S.low) return "charge";
+  return "ready";
+}
+function secs() { return Math.floor((Date.now() - S.talkStart) / 1000) + "s"; }
+function hint(t) { $("hint").textContent = t; }
+
+function render() {
+  const st = S.state, [word, led] = LOOK[st];
+  $("oWord").textContent = word;
+  $("oWord").setAttribute("font-size", word.length > 7 ? 15 : 20);
+  $("oCh").textContent = st === "talk" ? CHANNELS[S.ch] + "  " + secs() : st === "open" ? "CHRIS · LIVE" : CHANNELS[S.ch];
+  $("led").setAttribute("fill", led);
+  $("led").classList.toggle("blink", st === "charge" || st === "offline");
+  $("led").classList.toggle("pulse", st === "open");
+  $("btn").setAttribute("y", pressed ? 32 : 24);
+  $("btn").setAttribute("height", pressed ? 26 : 34);
+  $("pointer").setAttribute("transform", `rotate(${-60 + S.ch * 60} 252 236)`);
+  $("lever").setAttribute("transform", `rotate(${S.mode === "open" ? 38 : -38} 110 266)`);
+  $("needle").style.left = ((S.ch + 0.5) / CHANNELS.length * 100) + "%";
+  $("toggle").setAttribute("aria-checked", String(S.mode === "open"));
+  $("swText").textContent = S.mode === "open" ? "OPEN: talk hands-free, red light on" : "PUSH: hold the button to talk";
+  $("ptt").textContent = S.mode === "open" ? (S.paused ? "Press to carry on" : "Press to pause") : "Hold to talk";
+  $("evQuiet").disabled = S.mode !== "open" || S.paused;
+}
+
+function down() {
+  if (pressed) return;
+  pressed = true; $("ptt").classList.add("down");
+  if (!S.online) { S.state = "offline"; snd.buzz(); hint("No connection, so it buzzes twice and nothing is sent. Family would get an alert."); render(); return; }
+  if (S.incoming) { S.state = "wait"; snd.busy(); hint("Chris is talking. Busy tone, and nothing is sent until they've finished."); render(); return; }
+  if (S.mode === "open") {
+    S.paused = !S.paused; snd.thunk();
+    speak(S.paused ? "Paused." : "Carrying on.");
+    hint(S.paused ? "Paused. The microphone is off until you press again." : "Open again. Red light on, talk any time.");
+    S.state = idle(); render(); return;
+  }
+  S.state = "talk"; S.talkStart = Date.now(); snd.chirp();
+  hint("Talking. The microphone only hears you while you hold the button.");
+  S.timer = setInterval(() => { if (Date.now() - S.talkStart > 60000) up(); else render(); }, 250);
+  render();
+}
+function up() {
+  if (!pressed) return;
+  pressed = false; $("ptt").classList.remove("down");
+  clearInterval(S.timer);
+  if (S.state === "talk") { snd.roger(); hint("Roger beep. Chris heard you."); }
+  S.state = idle(); render();
+}
+function bindHold(el) {
+  el.addEventListener("pointerdown", e => { e.preventDefault(); el.setPointerCapture && el.setPointerCapture(e.pointerId); down(); });
+  el.addEventListener("pointerup", up);
+  el.addEventListener("pointercancel", up);
+  el.addEventListener("contextmenu", e => e.preventDefault());
+}
+bindHold($("ptt")); bindHold($("btn"));
+$("ptt").addEventListener("keydown", e => { if ((e.code === "Space" || e.code === "Enter") && !e.repeat) { e.preventDefault(); down(); } });
+$("ptt").addEventListener("keyup", e => { if (e.code === "Space" || e.code === "Enter") up(); });
+
+function inTry() { const r = $("try").getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }
+window.addEventListener("keydown", e => {
+  const tag = e.target.tagName;
+  if (tag === "BUTTON" || tag === "A" || tag === "SUMMARY" || !inTry()) return;
+  if (e.code === "Space" && !e.repeat) { e.preventDefault(); down(); }
+  if (e.key === "ArrowRight") turn(1);
+  if (e.key === "ArrowLeft") turn(-1);
+});
+window.addEventListener("keyup", e => { if (e.code === "Space") up(); });
+
+function turn(dir) { tune(S.ch + dir); }
+function tune(n) {
+  if (pressed || S.incoming) return;
+  if (S.mode === "open") { snd.thunk(); hint("The knob is locked while the channel is open. Flip the switch back to PUSH first."); return; }
+  if (n < 0 || n >= CHANNELS.length) { snd.thunk(); hint("The knob stops at each end, so fully left is always Chris."); return; }
+  if (n === S.ch) return;
+  S.ch = n; snd.click(); speak(SPOKEN[n]); hint("Each click says the channel name out loud.");
+  S.state = idle(); render();
+}
+$("knob").addEventListener("click", e => { const b = e.currentTarget.getBoundingClientRect(); turn(e.clientX < b.left + b.width / 2 ? -1 : 1); });
+document.querySelectorAll("[data-ch]").forEach(b => b.addEventListener("click", () => tune(+b.dataset.ch)));
+
+function flip() {
+  if (pressed) up();
+  snd.clack();
+  if (S.mode === "push") {
+    S.mode = "open"; S.paused = false;
+    const moved = S.ch !== 0; S.ch = 0;
+    speak("Channel open to Chris. The red light means I can hear you.");
+    hint((moved ? "It tuned itself to Chris and locked the knob. " : "") + "Hands-free now: it sends when you speak, and goes quiet when you stop.");
+  } else {
+    S.mode = "push"; S.paused = false;
+    speak("Channel closed.");
+    hint("Back to PUSH. The microphone is off until you hold the button.");
+  }
+  S.state = idle(); render();
+}
+$("sw").addEventListener("click", flip);
+$("toggle").addEventListener("click", flip);
+
+$("evCall").addEventListener("click", () => {
+  if (S.incoming) return;
+  if (!S.online) { hint("No Wi-Fi. The server keeps the message and plays it when the radio is back."); return; }
+  if (pressed) up();
+  S.incoming = true; S.state = "listen"; snd.kerchunk(); render();
+  hint(S.mode === "open" ? "Chris is talking, so Grandad's microphone mutes itself to stop any echo." : "A short click, then Chris's voice. Try pressing the button while he talks.");
+  setTimeout(() => speak("Hi Grandad, it's Chris. I'll pop round at four.", () => {
+    S.incoming = false; snd.roger();
+    if (!pressed) S.state = idle();
+    hint(S.mode === "open" ? "Chris has stopped. The microphone is back on: your turn." : "Message over. Roger beep, and it's ready again.");
+    render();
+  }), 250);
+});
+$("evQuiet").addEventListener("click", () => {
+  if (S.mode !== "open") return;
+  S.paused = true; S.state = idle(); render();
+  speak("Nobody's said anything for a while, so I've paused. Press the button to carry on.");
+  hint("After ten quiet minutes it pauses itself. One press brings it back.");
+});
+$("evNet").addEventListener("click", e => {
+  S.online = !S.online;
+  const b = e.currentTarget; b.setAttribute("aria-pressed", String(!S.online));
+  b.querySelector("span").textContent = S.online ? "Wi-Fi drops" : "Wi-Fi back on";
+  b.querySelector("small").textContent = S.online ? "Try to talk with no link" : "Reconnect";
+  if (!S.online && S.incoming) { if ("speechSynthesis" in window) speechSynthesis.cancel(); S.incoming = false; }
+  if (!pressed) S.state = idle();
+  hint(S.online ? "Connected again." : "Now press the button and see what happens.");
+  render();
+});
+$("evBatt").addEventListener("click", e => {
+  S.low = !S.low;
+  const b = e.currentTarget; b.setAttribute("aria-pressed", String(S.low));
+  b.querySelector("span").textContent = S.low ? "Back on the stand" : "Battery low";
+  b.querySelector("small").textContent = S.low ? "Charge it up" : "Off the stand too long";
+  if (!pressed) S.state = idle();
+  if (S.low) { speak("Please put me on my charger."); hint("It asks out loud, and family get an alert too."); }
+  else hint("Charging. All good.");
+  render();
+});
+render();
+
+/* ---------- Pebble front and back ---------- */
+$("flip").addEventListener("click", e => {
+  const img = $("pebble"), toBack = img.src.includes("front");
+  img.src = "images/pocket-pebble-" + (toBack ? "back" : "front") + "_sml.jpg";
+  img.alt = toBack ? "Navy pebble radio, back view with belt clip and lanyard" : "Navy pebble-shaped radio in a hand, front view";
+  e.currentTarget.textContent = toBack ? "Show front" : "Show back";
+});
+
+/* ---------- Parts ---------- */
+const PARTS = [
+  ["ESP32-S3 board", "about 10", 18.5, 21], ["Microphone", "2 to 4", 45, 20], ["Amplifier", "2 to 4", 58, 20],
+  ["Speaker, 3 W", "1.50", 82, 19], ["Big orange button", "2 to 4", 17, 51], ["Knob", "2 to 3", 40, 50],
+  ["Small screen", "about 2", 58.5, 51], ["Battery, 1000 mAh", "2 to 8", 81, 51], ["Charger board", "0.50", 17, 80],
+  ["Light and on/off switch", "under 1", 37, 81], ["Wire", "on hand", 58, 81], ["Case", "about 5", 82, 81],
+  ["PUSH / OPEN toggle switch (new, not pictured)", "2 to 5", null, null]
+];
+$("bom").innerHTML = PARTS.map(([n, p, x], i) => `<tr data-i="${i}" class="${x === null ? "new" : ""}" tabindex="0"><td>${i + 1}</td><td>${n}</td><td>${p}</td></tr>`).join("");
+const rows = [...$("bom").children], ring = $("ring");
+function mark(i) {
+  rows.forEach((r, j) => r.classList.toggle("on", j === i));
+  const p = PARTS[i];
+  if (!p || p[2] === null) { ring.classList.remove("on"); return; }
+  ring.style.left = p[2] + "%"; ring.style.top = p[3] + "%"; ring.classList.add("on");
+}
+rows.forEach((r, i) => {
+  r.addEventListener("click", () => mark(i));
+  r.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); mark(i); } });
+});
+$("photo").addEventListener("click", e => {
+  const b = e.currentTarget.getBoundingClientRect(), px = (e.clientX - b.left) / b.width * 100, py = (e.clientY - b.top) / b.height * 100;
+  let best = -1, d = 1e9;
+  PARTS.forEach(([, , x, y], i) => { if (x === null) return; const dd = (x - px) ** 2 + ((y - py) * 0.56) ** 2; if (dd < d) { d = dd; best = i; } });
+  mark(d < 140 ? best : -1);
+});
+
+/* ---------- Stages ---------- */
+$("stageList").innerHTML = PLAN.map((s, k) => {
+  const pct = Math.round(s.done / s.steps.length * 100);
+  const status = s.done === 0 ? `Not started · ${s.steps.length} steps` : s.done === s.steps.length ? "Done" : `${s.done} of ${s.steps.length} steps done`;
+  return `<div class="stage ${k === 0 ? "now" : ""}">
+    <div><div class="when">${s.when}</div><div class="num">${k + 1}</div><div class="bar"><span style="width:${pct}%"></span></div><div class="small muted" style="margin-top:6px">${status}</div></div>
+    <div><h3>${s.title}</h3><p>${s.text}</p><ol class="steps">${s.steps.map(([t, d], i) =>
+      `<li class="${i < s.done ? "done" : i === s.done && k === 0 ? "current" : ""}"><span class="box"></span><div><b>${t}</b><span>${d}</span></div></li>`).join("")}</ol></div>
+  </div>`;
+}).join("");
+</script>
+</body>
+</html>
