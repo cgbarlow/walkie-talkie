@@ -11,7 +11,7 @@ Paste one prompt at a time. Each is self-contained, so the generator needs no ot
 - **Labels.** Image generators often garble small text. Prompt 1 asks for numbered tags and gives the key below it, so a wrong label does not matter. If your generator handles text well, use the "with names" line instead.
 - **Consistency.** Every concept prompt repeats the same five features (big orange button, knob, small screen, speaker grille, PUSH / OPEN toggle switch), so the three results stay comparable.
 - **Aspect ratio.** 16:9 for the parts layout, 4:5 for the concepts. Change the last line of each prompt if your tool sets this elsewhere.
-- **The switch.** The PUSH / OPEN toggle was added after the first set of images was made, so the pictures in `images/` do not show it yet. Generators often garble the two small labels; the lever is what matters.
+- **The switch.** The PUSH / OPEN toggle was added after the first set of images was made; the pictures in `images/` were regenerated to include it. Generators often garble the two small labels; the lever is what matters.
 - **No antenna.** It works over Wi-Fi, so the prompts say so. Generators love adding one.
 
 ## Prompt 1: all parts laid out
