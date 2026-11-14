@@ -220,11 +220,20 @@ A [Waveshare S3 audio board](https://core-electronics.com.au/waveshare-esp32-s3-
 **Build plan.**
 
 1.  **Breadboard night.** A T-Embed, or an S3 dev board with mic, amp, speaker, screen, knob and button. Flash xiaozhi-esp32 unmodified to prove the audio chain and loudness.
-2.  **Firmware.** Fork it: replace the AI server link with the walkie relay protocol, add floor control, chirp and busy tones, the knob, screen states, spoken channel names and the PUSH / OPEN switch.
+2.  **Firmware.** Fork it: replace the AI server link with the shared C protocol core from Stage 1, add floor control, chirp and busy tones, the knob, screen states, spoken channel names and the PUSH / OPEN switch.
 3.  **Setup tooling.** Laptop script that writes keys, relay address and Wi-Fi over USB. Long-press to open BLE provisioning.
 4.  **Control service.** Admin page for channels, names and device health, then ring and re-key.
 5.  **Power.** Light sleep off the dock, radio awake on it. Measure real standby current.
 6.  **Case and trial.** Print the case, fit the dock, then a week with Grandad as in the R1 plan.
+
+**What comes from Stage 1.** The R1 stage is planned so that most of its work lands here (see [making the R1 work count](Rabbit%20R1%20Walkie-Talkie%20Research%20and%20Design.md#making-the-r1-work-count-for-stage-2)):
+
+- **The relay and control service** are used as they are.
+- **The C protocol core** (packet format, encryption, jitter buffer, floor control, open-mode voice detection) compiles into this firmware unchanged. Only the audio driver, button, knob, screen and power code are new.
+- **The laptop test client** checks that this unit and an R1 can share a channel.
+- **The trial findings** set the starting volume, treble boost, knob behaviour and open-mode defaults.
+
+The one thing that does not carry over is setup: the R1 is set up from the control service, while this unit adds the USB setup script in step 3.
 
 ## Cost in NZ dollars, and keeping it low
 
