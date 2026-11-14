@@ -30,7 +30,7 @@ Both stages use the same small relay server and the same sounds, so an R1 and an
 The R1 is a temporary client. Most of what Stage 1 builds is used again in Stage 2:
 
 - **Used again as is:** the relay server, the control page, the protocol, the sounds and screen states, and everything learned from the week with Grandad.
-- **Written once for both:** a small C library holding the protocol, encryption, jitter buffer and turn-taking. The R1 app calls it; the ESP32 firmware compiles the same files.
+- **Written once for both:** a small C library holding the protocol, encryption, jitter buffer, turn-taking and speech shaping (making voices clearer for older ears). The R1 app calls it; the ESP32 firmware compiles the same files.
 - **Built first:** a written protocol spec and a laptop test client, so the server can be tested without either device and the two devices can be checked against each other.
 - **R1 only, kept small:** reflashing, the button remap and locking the R1 to one app.
 

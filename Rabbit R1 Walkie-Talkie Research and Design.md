@@ -254,10 +254,10 @@ Neither R1 accepts inbound connections; both hold an outbound link to the relay,
 1.  **Bench night.** Back up both units, unlock, flash the LineageOS GSI, root. Run getevent, OboeTester, and Zello across Wi-Fi and LTE. Gate: button and wheel captured, audio round trip measured.
 2.  **Protocol spec and test client (shared).** Write the wire format and floor rules down as a short spec in the repo, then build a small laptop client that joins a channel, sends a recording and plays what arrives.
 3.  **Relay (a day, shared).** Go service on an Auckland or Sydney VPS: TLS control, UDP fan-out per group, floor control, 24-hour last message, health pings, APK manifest.
-4.  **Shared C core (shared).** Packet format, ChaCha20-Poly1305, jitter buffer, floor control and open-mode voice detection as a small C library on libopus and libsodium.
+4.  **Shared C core (shared).** Packet format, ChaCha20-Poly1305, jitter buffer, floor control, open-mode voice detection and speech shaping (compression and EQ for older ears) as a small C library on libopus and libsodium.
 5.  **App shell (one or two weekends).** Kotlin, Oboe capture and playback, calling the C core via JNI, pre-roll on button down. Synthesised chirp, busy, roger and squelch tail. Wheel changes channel with a spoken announcement.
 6.  **Kiosk.** Device Owner, lock task, HOME, remote config for volume, quiet hours and wheel lock. Set up channels from the control service rather than QR scanning, and skip self-update unless the trial needs it.
-7.  **Grandad trial (a week).** Dock beside his chair, printed card, caregiver alerts on. Tune volume and treble, then decide whether the wheel stays unlocked. Try open channel mode and ask him what he thinks.
+7.  **Grandad trial (a week).** Dock beside his chair, printed card, caregiver alerts on. Tune volume, treble and compression, then decide whether the wheel stays unlocked. Try open channel mode and ask him what he thinks.
 
 ## Making the R1 work count for Stage 2
 
@@ -267,7 +267,7 @@ The R1 is a temporary client. The relay, the protocol and what we learn from Gra
 
 - The relay server and control service.
 - The wire format: Opus in 20 ms frames, ChaCha20-Poly1305 per packet, TLS control, floor control, 24-hour replay, group channels and open channel mode.
-- The trial findings: volume, treble boost, whether the wheel or knob works for him, whether he uses OPEN, which sounds he notices.
+- The trial findings: volume, treble boost, compression, whether the wheel or knob works for him, whether he uses OPEN, which sounds he notices.
 - Network findings: delay on home Wi-Fi and NZ mobile networks, jitter buffer size, keep-alive interval.
 - The sounds and screen states.
 
@@ -275,7 +275,7 @@ The R1 is a temporary client. The relay, the protocol and what we learn from Gra
 
 **How to keep the waste small.**
 
-1. **One protocol core in C.** libopus and libsodium are C libraries that run on Android and on the ESP32, and ESP32 firmware is C. Put the packet format, encryption, jitter buffer, floor control and open-mode voice detection in one small C library. The R1 app calls it through JNI; the ESP32 firmware compiles the same files. This also keeps the xiaozhi-esp32 fork's changes in the protocol layer, as the hardware doc recommends.
+1. **One protocol core in C.** libopus and libsodium are C libraries that run on Android and on the ESP32, and ESP32 firmware is C. Put the packet format, encryption, jitter buffer, floor control, open-mode voice detection and speech shaping in one small C library. The R1 app calls it through JNI; the ESP32 firmware compiles the same files. This also keeps the xiaozhi-esp32 fork's changes in the protocol layer, as the hardware doc recommends.
 2. **A laptop test client.** It tests the relay without either device, and later checks that an R1 and an ESP32 unit understand each other.
 3. **A written protocol spec.** The ESP32 firmware is then built from a document, not by reading Kotlin.
 4. **No R1-only polish.** Skip QR pairing and self-update; use the control service for setup from the start, as the ESP32 will.
