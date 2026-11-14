@@ -25,6 +25,17 @@ This is a family project at the research and design stage. Nothing is built yet.
 
 Both stages use the same small relay server and the same sounds, so an R1 and an ESP32 unit can share a channel.
 
+### Making the R1 work count
+
+The R1 is a temporary client. Most of what Stage 1 builds is used again in Stage 2:
+
+- **Used again as is:** the relay server, the control page, the protocol, the sounds and screen states, and everything learned from the week with Grandad.
+- **Written once for both:** a small C library holding the protocol, encryption, jitter buffer and turn-taking. The R1 app calls it; the ESP32 firmware compiles the same files.
+- **Built first:** a written protocol spec and a laptop test client, so the server can be tested without either device and the two devices can be checked against each other.
+- **R1 only, kept small:** reflashing, the button remap and locking the R1 to one app.
+
+Afterwards the R1s can stay on the same channels as the ESP32 radios. The detail is in the [R1 doc](Rabbit%20R1%20Walkie-Talkie%20Research%20and%20Design.md#making-the-r1-work-count-for-stage-2).
+
 ## How it works
 
 - **Hold to talk.** One talker at a time, like a real radio. A chirp says it's ready, a roger beep says the message ended.

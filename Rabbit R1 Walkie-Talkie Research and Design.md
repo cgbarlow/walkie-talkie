@@ -249,13 +249,39 @@ flowchart TB
 
 Neither R1 accepts inbound connections; both hold an outbound link to the relay, which routes sealed packets by group and never holds the key.
 
-**Build plan.**
+**Build plan.** Steps marked *(shared)* carry straight over to the ESP32 stage; see the next section.
 
 1.  **Bench night.** Back up both units, unlock, flash the LineageOS GSI, root. Run getevent, OboeTester, and Zello across Wi-Fi and LTE. Gate: button and wheel captured, audio round trip measured.
-2.  **Relay (a day).** Go service on an Auckland or Sydney VPS: TLS control, UDP fan-out per group, floor control, 24-hour last message, health pings, APK manifest.
-3.  **App core (one or two weekends).** Kotlin, Oboe capture and playback, libopus via JNI, ChaCha20-Poly1305, jitter buffer, pre-roll on button down. Synthesised chirp, busy, roger and squelch tail. Wheel changes channel with a spoken announcement.
-4.  **Kiosk and pairing.** Device Owner, lock task, HOME, QR scan on first boot, self-update, remote config for volume, quiet hours and wheel lock.
-5.  **Grandad trial (a week).** Dock beside his chair, printed card, caregiver alerts on. Tune volume and treble, then decide whether the wheel stays unlocked. Try open channel mode and ask him what he thinks.
+2.  **Protocol spec and test client (shared).** Write the wire format and floor rules down as a short spec in the repo, then build a small laptop client that joins a channel, sends a recording and plays what arrives.
+3.  **Relay (a day, shared).** Go service on an Auckland or Sydney VPS: TLS control, UDP fan-out per group, floor control, 24-hour last message, health pings, APK manifest.
+4.  **Shared C core (shared).** Packet format, ChaCha20-Poly1305, jitter buffer, floor control and open-mode voice detection as a small C library on libopus and libsodium.
+5.  **App shell (one or two weekends).** Kotlin, Oboe capture and playback, calling the C core via JNI, pre-roll on button down. Synthesised chirp, busy, roger and squelch tail. Wheel changes channel with a spoken announcement.
+6.  **Kiosk.** Device Owner, lock task, HOME, remote config for volume, quiet hours and wheel lock. Set up channels from the control service rather than QR scanning, and skip self-update unless the trial needs it.
+7.  **Grandad trial (a week).** Dock beside his chair, printed card, caregiver alerts on. Tune volume and treble, then decide whether the wheel stays unlocked. Try open channel mode and ask him what he thinks.
+
+## Making the R1 work count for Stage 2
+
+The R1 is a temporary client. The relay, the protocol and what we learn from Grandad are the lasting product, and the ESP32 unit in the [hardware doc](Walkie-Talkie%20Beyond%20the%20R1%20Minimum%20Hardware.md) uses all of them. This section is a plan, not sourced research.
+
+**Carries over to the ESP32 unchanged.**
+
+- The relay server and control service.
+- The wire format: Opus in 20 ms frames, ChaCha20-Poly1305 per packet, TLS control, floor control, 24-hour replay, group channels and open channel mode.
+- The trial findings: volume, treble boost, whether the wheel or knob works for him, whether he uses OPEN, which sounds he notices.
+- Network findings: delay on home Wi-Fi and NZ mobile networks, jitter buffer size, keep-alive interval.
+- The sounds and screen states.
+
+**R1 only, so kept to a minimum.** Unlocking, reflashing and rooting; the side-button remap; Device Owner lock-down; the Android app shell and screens.
+
+**How to keep the waste small.**
+
+1. **One protocol core in C.** libopus and libsodium are C libraries that run on Android and on the ESP32, and ESP32 firmware is C. Put the packet format, encryption, jitter buffer, floor control and open-mode voice detection in one small C library. The R1 app calls it through JNI; the ESP32 firmware compiles the same files. This also keeps the xiaozhi-esp32 fork's changes in the protocol layer, as the hardware doc recommends.
+2. **A laptop test client.** It tests the relay without either device, and later checks that an R1 and an ESP32 unit understand each other.
+3. **A written protocol spec.** The ESP32 firmware is then built from a document, not by reading Kotlin.
+4. **No R1-only polish.** Skip QR pairing and self-update; use the control service for setup from the start, as the ESP32 will.
+5. **Breadboard an ESP32 early.** The parts cost about NZ$30. If it proves loud enough, the R1 lock-down work may not need finishing.
+
+**The hardware isn't wasted either.** Once Stage 2 exists, the R1s can stay on the same channels as family members' units.
 
 ## Risks and open questions
 
